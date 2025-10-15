@@ -1,9 +1,18 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-function DashboardPage({ setCurrentPage, bannerContent, currentBanner, commonIssues }) {
+function DashboardPage({ setCurrentPage, bannerContent, commonIssues }) {
+  const [currentBanner, setCurrentBanner] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentBanner((prev) => (prev + 1) % bannerContent.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [bannerContent.length]);
+
   return (
     <div className="dashboard">
-      {/* Welcome banner */}
+      {/* Welcome Banner */}
       <div className="welcome-banner">
         <div className="welcome-content">
           <h1>Welcome to Munici-PAL</h1>
@@ -36,7 +45,6 @@ function DashboardPage({ setCurrentPage, bannerContent, currentBanner, commonIss
       {/* Issue Categories */}
       <div className="section issue-categories">
         <h2>Common Issues</h2>
-        <p className="section-subtitle">Select an issue category to learn more</p>
         <div className="category-grid">
           {commonIssues.map(issue => (
             <div 
@@ -64,19 +72,19 @@ function DashboardPage({ setCurrentPage, bannerContent, currentBanner, commonIss
         <div className="chat-content">
           <div className="chat-text">
             <h3>Community Forum</h3>
-            <p>Connect with neighbors and discuss local issues in organized threads</p>
+            <p>Connect with neighbors and discuss local issues</p>
           </div>
           <button 
             className="secondary-btn chat-btn"
             onClick={() => setCurrentPage('chat-forum')}
           >
             <span className="btn-icon">💬</span>
-            Join Community Forum
+            Join Community Chat
           </button>
         </div>
       </div>
 
-      {/* Rotating banner */}
+      {/* Rotating Banner */}
       <div className="rotating-banner">
         <div className="banner-content">
           <span className="banner-icon">📢</span>
