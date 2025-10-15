@@ -10,7 +10,7 @@ import TechnicalIssuePage from './TechnicalIssue';
 import OperationalIssuePage from './OperationalIssue';
 import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
-import logo from './Municipal.jpg';
+import logo from './Municipal.jpg'; /*remember that we need to use the image that Jayden send on the WhatsApp group*/
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
