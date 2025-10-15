@@ -1,8 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import './App.css';
 import DashboardPage from './DashboardPage';
 import CreateTicketPage from './CreateTicket';
 import ChatForumPage from './ChatForum';
+import MyProfilePage from './MyProfile';
+import MyTicketHistoryPage from './MyTicketHistory';
+import FeedbackPage from './Feedback';
+import TechnicalIssuePage from './TechnicalIssue';
+import OperationalIssuePage from './OperationalIssue';
+import SuggestionPage from './Suggestion';
+import HelpPage from './Help';
+import logo from './Municipal.jpg';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -12,50 +20,12 @@ function App() {
     { id: 2, text: 'New message in community chat', read: false },
     { id: 3, text: 'Water outage reported in your area', read: true }
   ]);
-  const [chatThreads, setChatThreads] = useState([
-    { 
-      id: 1, 
-      title: 'Pothole on Main Street', 
-      user: 'Sarah K', 
-      initialMessage: 'Has anyone reported the pothole on Main St? It\'s getting really bad near the intersection with Oak Ave.', 
-      time: '10:30 AM',
-      replies: [
-        { id: 2, user: 'John M', message: 'Yes, I reported it yesterday. Status is "In Progress"', time: '10:45 AM' },
-        { id: 3, user: 'Municipal Worker', message: 'We\'ve scheduled repairs for tomorrow morning', time: '11:00 AM' }
-      ],
-      category: 'Road Issues',
-      isResolved: false
-    },
-    { 
-      id: 4, 
-      title: 'Street Light Outage', 
-      user: 'Mike T', 
-      initialMessage: 'The street light at the corner of 5th and Maple has been out for 3 days now. It\'s getting dangerous at night.', 
-      time: 'Yesterday',
-      replies: [
-        { id: 5, user: 'Municipal Worker', message: 'We have a work order for this. Electrician will visit tomorrow.', time: 'Yesterday' }
-      ],
-      category: 'Electrical',
-      isResolved: false
-    },
-    { 
-      id: 6, 
-      title: 'Garbage Collection Missed', 
-      user: 'Lisa R', 
-      initialMessage: 'Our garbage wasn\'t collected on Tuesday on Elm Street between numbers 100-150. Anyone else experiencing this?', 
-      time: '2 days ago',
-      replies: [
-        { id: 7, user: 'Robert J', message: 'Same here at #142. Called the sanitation department and they said they\'ll collect tomorrow.', time: '2 days ago' }
-      ],
-      category: 'Refuse',
-      isResolved: true
-    }
+  const [chatMessages, setChatMessages] = useState([
+    { id: 1, user: 'Sarah K', message: 'Has anyone reported the pothole on Main St?', time: '10:30 AM' },
+    { id: 2, user: 'John M', message: 'Yes, I reported it yesterday. Status is "In Progress"', time: '10:45 AM' },
+    { id: 3, user: 'Municipal Worker', message: 'We\'ve scheduled repairs for tomorrow morning', time: '11:00 AM' }
   ]);
-  const [newThreadTitle, setNewThreadTitle] = useState('');
-  const [newThreadMessage, setNewThreadMessage] = useState('');
-  const [newReply, setNewReply] = useState('');
-  const [selectedThread, setSelectedThread] = useState(null);
-  const [threadCategory, setThreadCategory] = useState('');
+  const [newMessage, setNewMessage] = useState('');
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
@@ -67,53 +37,17 @@ function App() {
     ));
   };
 
-  const handleCreateThread = () => {
-    if (newThreadTitle.trim() !== '' && newThreadMessage.trim() !== '' && threadCategory !== '') {
-      const newThread = {
-        id: chatThreads.length + 1,
-        title: newThreadTitle,
+  const handleSendMessage = () => {
+    if (newMessage.trim() !== '') {
+      const newChatMessage = {
+        id: chatMessages.length + 1,
         user: 'You',
-        initialMessage: newThreadMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        replies: [],
-        category: threadCategory,
-        isResolved: false
+        message: newMessage,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
-      setChatThreads([newThread, ...chatThreads]);
-      setNewThreadTitle('');
-      setNewThreadMessage('');
-      setThreadCategory('');
-      setSelectedThread(newThread.id);
+      setChatMessages([...chatMessages, newChatMessage]);
+      setNewMessage('');
     }
-  };
-
-  const handleSendReply = (threadId) => {
-    if (newReply.trim() !== '') {
-      const updatedThreads = chatThreads.map(thread => {
-        if (thread.id === threadId) {
-          const newReplyObj = {
-            id: thread.replies.length + 1,
-            user: 'You',
-            message: newReply,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          };
-          return {
-            ...thread,
-            replies: [...thread.replies, newReplyObj]
-          };
-        }
-        return thread;
-      });
-      setChatThreads(updatedThreads);
-      setNewReply('');
-    }
-  };
-
-  const markThreadAsResolved = (threadId) => {
-    const updatedThreads = chatThreads.map(thread => 
-      thread.id === threadId ? {...thread, isResolved: true} : thread
-    );
-    setChatThreads(updatedThreads);
   };
 
   // Menu items data
@@ -131,6 +65,37 @@ function App() {
   const handleMenuClick = (itemName) => {
     console.log(`Clicked: ${itemName}`);
     setIsMenuOpen(false);
+
+    switch(itemName) {
+      case 'My Profile':
+        setCurrentPage('my-profile');
+        break;
+      case 'My Ticket History':
+        setCurrentPage('ticket-history');
+        break;
+      case 'Munici-PAL Feedback':
+        setCurrentPage('feedback');
+        break;
+      case 'Technical Issue':
+        setCurrentPage('technical-issue');
+        break;
+      case 'Operational Issue':
+        setCurrentPage('operational-issue');
+        break;
+      case 'Suggestion':
+        setCurrentPage('suggestion');
+        break;
+      case 'Help':
+        setCurrentPage('help');
+        break;
+      case 'Logout':
+        // This is where we would add logout logic
+        console.log('Logging out');
+        setCurrentPage('dashboard');
+        break;
+      default:
+        break;
+    }
   };
 
   // Rotating banner content
@@ -139,14 +104,6 @@ function App() {
     "Track your ticket status in real-time",
     "Join your community chat forum"
   ];
-  const [currentBanner, setCurrentBanner] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentBanner((prev) => (prev + 1) % bannerContent.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [bannerContent.length]);
 
   // Common issues data
   const commonIssues = [
@@ -191,27 +148,30 @@ function App() {
         return <CreateTicketPage goBack={() => setCurrentPage('dashboard')} />;
       case 'chat-forum':
         return <ChatForumPage 
-          chatThreads={chatThreads}
-          newThreadTitle={newThreadTitle}
-          setNewThreadTitle={setNewThreadTitle}
-          newThreadMessage={newThreadMessage}
-          setNewThreadMessage={setNewThreadMessage}
-          newReply={newReply}
-          setNewReply={setNewReply}
-          threadCategory={threadCategory}
-          setThreadCategory={setThreadCategory}
-          handleCreateThread={handleCreateThread}
-          handleSendReply={handleSendReply}
-          selectedThread={selectedThread}
-          setSelectedThread={setSelectedThread}
-          markThreadAsResolved={markThreadAsResolved}
+          messages={chatMessages}
+          newMessage={newMessage}
+          setNewMessage={setNewMessage}
+          handleSendMessage={handleSendMessage}
           goBack={() => setCurrentPage('dashboard')}
         />;
+        case 'my-profile':
+        return <MyProfilePage goBack={() => setCurrentPage('dashboard')} />;
+      case 'ticket-history':
+        return <MyTicketHistoryPage goBack={() => setCurrentPage('dashboard')} />;
+      case 'feedback':
+        return <FeedbackPage goBack={() => setCurrentPage('dashboard')} />;
+      case 'technical-issue':
+        return <TechnicalIssuePage goBack={() => setCurrentPage('dashboard')} />;
+      case 'operational-issue':
+        return <OperationalIssuePage goBack={() => setCurrentPage('dashboard')} />;
+      case 'suggestion':
+        return <SuggestionPage goBack={() => setCurrentPage('dashboard')} />;
+      case 'help':
+        return <HelpPage goBack={() => setCurrentPage('dashboard')} />;
       default:
         return <DashboardPage 
           setCurrentPage={setCurrentPage}
           bannerContent={bannerContent}
-          currentBanner={currentBanner}
           commonIssues={commonIssues}
         />;
     }
@@ -260,7 +220,7 @@ function App() {
         </div>
         
         <div className="header-right">
-          <img src="/logo.JPG" alt="Munich-PAL Logo" className="logo" />
+          <img src={logo} alt="Munich-PAL Logo" className="logo" />
         </div>
       </header>
 
