@@ -92,7 +92,7 @@ function CreateTicketPage({ goBack }) {
 
           {/* LOCATION */}
           <div className="form-section">
-            <h3>Location</h3>
+            <h3>Location Details</h3>
             
             <div className="form-group">
               <label htmlFor="location">Location *</label>
