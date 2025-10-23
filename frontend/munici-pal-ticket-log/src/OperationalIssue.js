@@ -47,9 +47,10 @@ function OperationalIssuePage({ goBack }) {
                 required
               >
                 <option value="">Select department</option>
+                <option value="road-management">Road Management</option>
                 <option value="water-sewer">Water & Sewer</option>
                 <option value="electrical">Electrical Department</option>
-                <option value="waste-management">Waste Management</option>
+                <option value="waste-management">Refuse Management</option>
                 <option value="other">Other Department</option>
               </select>
             </div>
