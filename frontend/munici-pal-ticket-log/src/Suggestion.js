@@ -84,7 +84,7 @@ function SuggestionPage({ goBack }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="benefits">Expected Benefits</label>
+              <label htmlFor="benefits">Expected Benefits (Optional)</label>
               <textarea
                 id="benefits"
                 name="benefits"
@@ -92,7 +92,6 @@ function SuggestionPage({ goBack }) {
                 onChange={handleInputChange}
                 placeholder="How will this suggestion benefit the community or improve services?"
                 rows="4"
-                required
               ></textarea>
             </div>
           </div>
