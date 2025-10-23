@@ -10,13 +10,14 @@ import TechnicalIssuePage from './TechnicalIssue';
 import OperationalIssuePage from './OperationalIssue';
 import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
-import logo from './Municipal.jpg'; /*remember that we need to use the image that Jayden send on the WhatsApp group*/
+import AboutPage from './AboutPage';
+import logo from './municiPAL.svg';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [notifications, setNotifications] = useState([
-    { id: 1, text: 'Your ticket #1234 has been resolved', read: false },
+    { id: 1, text: 'Your ticket #TKT-001 has been resolved', read: false },
     { id: 2, text: 'New message in community chat', read: false },
     { id: 3, text: 'Water outage reported in your area', read: true }
   ]);
@@ -59,6 +60,7 @@ function App() {
     { id: 5, name: 'Operational Issue', icon: '⚙️' },
     { id: 6, name: 'Suggestion', icon: '💡' },
     { id: 7, name: 'Help', icon: '❓' },
+    { id: 8, name: 'About', icon: 'ℹ️' },
     { id: 8, name: 'Logout', icon: '🚪', isLogout: true }
   ];
 
@@ -88,6 +90,9 @@ function App() {
       case 'Help':
         setCurrentPage('help');
         break;
+      case 'About':
+      setCurrentPage('about');
+      break;
       case 'Logout':
         // This is where we would add logout logic
         console.log('Logging out');
@@ -168,6 +173,8 @@ function App() {
         return <SuggestionPage goBack={() => setCurrentPage('dashboard')} />;
       case 'help':
         return <HelpPage goBack={() => setCurrentPage('dashboard')} />;
+      case 'about':
+      return <AboutPage goBack={() => setCurrentPage('dashboard')} />;
       default:
         return <DashboardPage 
           setCurrentPage={setCurrentPage}
@@ -220,7 +227,7 @@ function App() {
         </div>
         
         <div className="header-right">
-          <img src={logo} alt="Munich-PAL Logo" className="logo" />
+          <img src={logo} alt="Munich-PAL Logo" className="logo" onClick={() => setCurrentPage('dashboard')} style={{ cursor: 'pointer' }}/>
         </div>
       </header>
 
