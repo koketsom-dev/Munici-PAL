@@ -27,7 +27,7 @@ function HelpPage({ goBack }) {
     {
       id: 5,
       question: "How do I update my profile information?",
-      answer: "Navigate to 'My Profile' from the menu where you can update your personal information and address details."
+      answer: "Navigate to 'My Profile' from the menu where you can update your personal information and ward information."
     }
   ];
 
@@ -78,18 +78,6 @@ function HelpPage({ goBack }) {
             <p><strong>Phone:</strong> 011 567 7980</p>
             <p><strong>Operating Hours:</strong> Monday-Friday, 8:00 AM - 6:00 PM</p>
             <p><strong>Emergency:</strong> For urgent matters/emergencies, please call 112, Police-10111, Ambulance-10177</p>
-          </div>
-        </div>
-
-        <div className="form-section">
-          <h3>Quick Links</h3>
-          <div className="quick-links">
-            <button className="secondary-btn" style={{marginBottom: '10px'}} onClick={() => window.location.reload()}>
-              User Guide
-            </button>
-            <button className="secondary-btn" onClick={() => window.location.reload()}>
-              Community Guidelines
-            </button>
           </div>
         </div>
       </div>
