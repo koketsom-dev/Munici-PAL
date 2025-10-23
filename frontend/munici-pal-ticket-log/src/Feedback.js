@@ -17,6 +17,10 @@ function FeedbackPage({ goBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (feedback.category && !feedback.comments.trim()) {
+      alert('Please provide comments when selecting a feedback category.');
+      return;
+    }
     alert('Thank you for your feedback!');
     goBack();
   };
@@ -47,22 +51,21 @@ function FeedbackPage({ goBack }) {
                 required
               >
                 <option value="">Select rating</option>
-                <option value="excellent">⭐️⭐️⭐️⭐️⭐️ Excellent</option>
-                <option value="good">⭐️⭐️⭐️⭐️ Good</option>
-                <option value="average">⭐️⭐️⭐️ Average</option>
-                <option value="poor">⭐️⭐️ Poor</option>
-                <option value="terrible">⭐️ Terrible</option>
+                <option value="excellent">Excellent ⭐️⭐️⭐️⭐️⭐️</option>
+                <option value="good">Good ⭐️⭐️⭐️⭐️</option>
+                <option value="average">Average ⭐️⭐️⭐️</option>
+                <option value="poor">Poor ⭐️⭐️</option>
+                <option value="terrible">Terrible⭐️</option>
               </select>
             </div>
 
             <div className="form-group">
-              <label htmlFor="category">Feedback Category</label>
+              <label htmlFor="category">Feedback Category (Optional)</label>
               <select
                 id="category"
                 name="category"
                 value={feedback.category}
                 onChange={handleInputChange}
-                required
               >
                 <option value="">Select category</option>
                 <option value="usability">App Usability</option>
@@ -73,8 +76,11 @@ function FeedbackPage({ goBack }) {
               </select>
             </div>
 
+
             <div className="form-group">
-              <label htmlFor="comments">Comments</label>
+              <label htmlFor="comments">
+                Comments {feedback.category && ' *'}
+              </label>
               <textarea
                 id="comments"
                 name="comments"
@@ -82,8 +88,13 @@ function FeedbackPage({ goBack }) {
                 onChange={handleInputChange}
                 placeholder="Please share your detailed feedback..."
                 rows="6"
-                required
+                required={!!feedback.category}
               ></textarea>
+              {feedback.category && (
+                <small style={{ color: '#666', fontStyle: 'italic' }}>
+                  Comments are required when a category is selected
+                </small>
+              )}
             </div>
           </div>
 
