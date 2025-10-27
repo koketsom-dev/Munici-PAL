@@ -1,0 +1,106 @@
+services:
+  # === Database ===
+  db:
+    image: postgis/postgis:15-3.3
+    container_name: postgres_db
+    restart: always
+    environment:
+      POSTGRES_USER: municipalAdmin
+      POSTGRES_PASSWORD: Single-Guide-Card-Helpful4-Whispered
+      POSTGRES_DB: municipal_main
+    ports:
+      - "5432:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  # === Backend API ===
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: php_backend
+    ports:
+      - "8000:80"
+    volumes:
+      - ./backend:/var/www/html
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: municipal_main
+      DB_USER: municipalAdmin
+      DB_PASSWORD: Single-Guide-Card-Helpful4-Whispered
+    depends_on:
+      - db
+
+  # === Global Login Page ===
+  global_login:
+    build:
+      context: ./frontend/Global-login-page
+      dockerfile: Dockerfile.dev
+    container_name: munici-pal-global-login
+    ports:
+      - "3002:3000"
+    volumes:
+      - ./frontend/Global-login-page:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+  # === Employee Dashboard ===
+  dashboard:
+    build:
+      context: ./frontend/MuniciPAL-DashboardSite-main
+      dockerfile: Dockerfile.dev
+    container_name: munici-pal-dashboard
+    ports:
+      - "3000:5173"
+    volumes:
+      - ./frontend/MuniciPAL-DashboardSite-main:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - backend
+
+  # === Community Ticket Log ===
+  ticket_log:
+    build:
+      context: ./frontend/munici-pal-ticket-log
+      dockerfile: Dockerfile.dev
+    container_name: munici-pal-ticket-log
+    ports:
+      - "3001:3000"
+    volumes:
+      - ./frontend/munici-pal-ticket-log:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+      - FAST_REFRESH=true
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+
+  # === PGAdmin (Database GUI) ===
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "5050:80"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
