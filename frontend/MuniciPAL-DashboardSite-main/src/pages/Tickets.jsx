@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import Sidebar from "../Components/Sidebar";
 import Header from "../Components/Header";
 import TicketCard from "../Components/TicketCard";
@@ -23,8 +24,9 @@ function Tickets() {
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 gap-6">
           {tickets.map((ticket) => (
-            <div
+            <Link
               key={ticket.id}
+              to={`/tickets/${ticket.id}`}
               className="border rounded-lg bg-white shadow p-4"
             >
               <h2
@@ -40,7 +42,7 @@ function Tickets() {
               </h2>
 
               <TicketCard ticket={ticket} />
-            </div>
+            </Link>
           ))}
         </div>
       </main>

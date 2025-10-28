@@ -37,6 +37,8 @@ function Header() {
 
       <div className="flex-1 flex justify-center items-center mx-4 max-w-lg space-x-2 relative">
         <input
+          id="search-ticket"
+          name="search-ticket"
           type="text"
           placeholder="Search Ticket"
           className="border rounded px-2 py-1 flex-1"
@@ -78,7 +80,7 @@ function Header() {
       </div>
 
       <div className="flex items-center space-x-4">
-        <select className="border rounded px-2 py-1" defaultValue="">
+        <select id="sort-by" name="sort-by" className="border rounded px-2 py-1" defaultValue="">
           <option value="">Sort By</option>
           <option>Newest to Oldest</option>
           <option>Oldest to Newest</option>
