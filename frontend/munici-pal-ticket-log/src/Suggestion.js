@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { ArrowLeft } from "lucide-react";
 
 function SuggestionPage({ goBack }) {
   const [suggestion, setSuggestion] = useState({
@@ -26,11 +25,45 @@ function SuggestionPage({ goBack }) {
   return (
     <div className="create-ticket-page">
       <div className="page-header">
-        <div className="flex items-center space-x-2"></div>
-                <button onClick={goBack} className="flex items-center bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300 transition">
-                  <ArrowLeft className="w-5 h-5 mr-2" />
-                  <span>Back</span>
-                </button>
+        <button onClick={goBack} style={{
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#e5e7eb',
+          color: '#1f2937',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'all 0.3s',
+          fontSize: '14px',
+          fontWeight: '500',
+          fontFamily: 'inherit'
+        }}
+        onMouseOver={(e) => {
+          e.target.style.backgroundColor = '#d1d5db';
+          e.target.style.transform = 'translateY(-1px)';
+        }}
+        onMouseOut={(e) => {
+          e.target.style.backgroundColor = '#e5e7eb';
+          e.target.style.transform = 'translateY(0)';
+          }}
+          >
+            <svg 
+            style={{ 
+              width: '20px', 
+              height: '20px', 
+              marginRight: '8px',
+              flexShrink: 0
+              }} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Back</span>
+          </button>
         <h1>Submit Suggestion</h1>
         <p>Share your ideas to improve Munici-PAL services</p>
       </div>
