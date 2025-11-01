@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ArrowLeft } from "lucide-react";
 
 function HelpPage({ goBack }) {
   const [activeFAQ, setActiveFAQ] = useState(null);
@@ -38,10 +39,11 @@ function HelpPage({ goBack }) {
   return (
     <div className="create-ticket-page">
       <div className="page-header">
-        <button className="back-btn" onClick={goBack}>
-          <span className="back-icon">←</span>
-          Back to Dashboard
-        </button>
+        <div className="flex items-center space-x-2"></div>
+        <button onClick={goBack} className="flex items-center bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300 transition">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          <span>Back</span>
+          </button>
         <h1>Help & Support</h1>
         <p>Get assistance with using Munici-PAL</p>
       </div>
