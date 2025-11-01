@@ -1,6 +1,6 @@
 import React from 'react';
 
-function MyTicketHistoryPage({ goBack }) {
+function MyTicketHistoryPage({ goBack, followedTickets, onFollowTicket }) {
   const tickets = [
     { id: 'TKT-001', title: 'Pothole on Main St', status: 'Resolved', date: '2024-01-15', category: 'Road Issues' },
     { id: 'TKT-002', title: 'Street Light Outage', status: 'In Progress', date: '2024-01-18', category: 'Electrical' },
@@ -45,9 +45,22 @@ function MyTicketHistoryPage({ goBack }) {
                   <p><strong>Category:</strong> {ticket.category}</p>
                   <p><strong>Date:</strong> {ticket.date}</p>
                 </div>
-                <button className="primary-btn" style={{padding: '8px 16px', fontSize: '0.9rem'}}>
-                  View Details
-                </button>
+                <div className="ticket-actions">
+                  <button className="primary-btn" style={{padding: '8px 16px', fontSize: '0.9rem', marginRight: '8px'}}>
+                    View Details
+                  </button>
+                  <button 
+                    className={`follow-btn ${followedTickets.includes(ticket.id) ? 'following' : ''}`}
+                    onClick={() => onFollowTicket(ticket.id)}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '0.9rem',
+                      backgroundColor: followedTickets.includes(ticket.id) ? '#28a745' : '#6c757d'
+                    }}
+                  >
+                    {followedTickets.includes(ticket.id) ? '✓ Following' : 'Follow Ticket'}
+                  </button>
+                </div>
               </div>
             ))}
           </div>

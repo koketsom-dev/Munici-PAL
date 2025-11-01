@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-function CreateTicketPage({ goBack }) {
+function CreateTicketPage({ goBack, onCreateTicket }) {
   const [ticketData, setTicketData] = useState({
     title: '',
     description: '',
@@ -25,7 +25,13 @@ function CreateTicketPage({ goBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert('Ticket submitted successfully!');
+    // Call parent handler to create ticket and add notification
+    if (typeof onCreateTicket === 'function') {
+      const ticketId = onCreateTicket(ticketData);
+      alert(`Ticket ${ticketId} submitted successfully!`);
+    } else {
+      alert('Ticket submitted successfully!');
+    }
     goBack();
   };
 
