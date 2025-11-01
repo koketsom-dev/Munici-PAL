@@ -67,36 +67,13 @@ function App() {
   ];
 
   const handleFollowTicket = (ticketId) => {
-    const isCurrentlyFollowing = followedTickets.includes(ticketId);
-    
-    // Remove any existing follow/unfollow notifications for this ticket
-    setNotifications(prev => 
-      prev.filter(n => !(
-        n.ticketId === ticketId && 
-        (n.type === 'follow' || n.type === 'unfollow') &&
-        !n.read
-      ))
-    );
-
-    // Create single new notification
-    const newNotification = {
-      id: Date.now(),
-      text: isCurrentlyFollowing
-        ? `You have unfollowed ticket #${ticketId}. You will no longer receive updates.`
-        : `You are now following ticket #${ticketId}. You'll receive updates when its status changes.`,
-      read: false,
-      ticketId: ticketId,
-      type: isCurrentlyFollowing ? 'unfollow' : 'follow',
-      ts: Date.now()
-    };
-
-    // Update notifications and followedTickets
-    setNotifications(prev => [newNotification, ...prev]);
-    setFollowedTickets(prev => 
-      isCurrentlyFollowing 
-        ? prev.filter(id => id !== ticketId)
-        : [...prev, ticketId]
-    );
+    // Toggle followed state for the given ticket.
+    // NOTE: We intentionally do NOT create follow/unfollow notifications here —
+    // the follow button on notification messages and its notification-driven
+    // functionality have been removed.
+    setFollowedTickets(prev => (
+      prev.includes(ticketId) ? prev.filter(id => id !== ticketId) : [...prev, ticketId]
+    ));
   };
 
   // Create ticket and add a notification at the top
