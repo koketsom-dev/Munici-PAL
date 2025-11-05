@@ -766,20 +766,78 @@ body {
 }
 .not-member { text-align: right; color: rgba(180,200,240,0.8); margin-bottom: 6px; }
 .linkish { background: none; border: none; color: #6fb0ff; cursor: pointer; text-decoration: underline; }
-.fields { max-width: 420px; margin: 0 auto; }
-.input-label { font-size: 12px; color: rgba(220,230,250,0.7); margin-top: 10px; display:block; }
-.input-row { display:flex; align-items:center; gap:10px; margin-top:6px; }
-.input-row input {
-  flex:1; padding:12px 14px; border-radius:8px; border:1px solid rgba(255,255,255,0.06); background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); color:#fff;
+.fields { width: 420px; margin: 0 auto; }
+.input-label { 
+  font-size: 12px; 
+  color: rgba(220,230,250,0.7); 
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 420px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  position: relative;
+}
+
+.input-label .icon {
+  color: rgba(120,170,255,0.95);
+  width: 16px;
+  margin-left: 8px;
+  margin-right: 8px;
+}
+
+.input-row { 
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 6px;
+  width: 420px;
+  position: relative;
+}
+.input-row input,
+.input-row select {
+  flex: 1;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+  color: #fff;
   transition: box-shadow 160ms ease, transform 120ms ease, border-color 160ms ease;
 }
-.input-row input:focus {
+
+.input-row select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none'%3E%3Cpath d='M2.5 4L6 7.5L9.5 4' stroke='rgba(255,255,255,0.6)' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.input-row select option {
+  background: rgba(8,12,16,0.95);
+  color: #fff;
+  padding: 8px;
+}
+
+.input-row input:focus,
+.input-row select:focus {
   outline: none;
   border-color: rgba(90,170,255,0.9);
   box-shadow: 0 6px 24px rgba(40,100,200,0.12), 0 0 0 4px rgba(70,130,255,0.06);
   transform: translateY(-1px);
 }
-.input-row .icon { color: rgba(120,170,255,0.95); }
+
+.input-row .icon { 
+  color: rgba(120,170,255,0.95);
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+}
 .row-between {
   display: flex;
   justify-content: center;

@@ -105,18 +105,16 @@ export default function SignupPage(props) {
             <p className="sub">Please choose a username and password</p>
           </div>
           <div className="fields">
-            <label className="input-label">Username / Email</label>
+            <label className="input-label">Username / Email <FaUser className="icon" /></label>
             <div className="input-row">
-              <FaUser className="icon" />
               <input 
                 value={username} 
                 onChange={e => setUsername(e.target.value)} 
                 placeholder="Username or email" 
               />
             </div>
-            <label className="input-label">Password</label>
+            <label className="input-label">Password <FaLock className="icon" /></label>
             <div className="input-row">
-              <FaLock className="icon" />
               <input 
                 type="password" 
                 value={password} 
@@ -124,9 +122,8 @@ export default function SignupPage(props) {
                 placeholder="Password" 
               />
             </div>
-            <label className="input-label">Confirm password</label>
+            <label className="input-label">Confirm password <FaLock className="icon" /></label>
             <div className="input-row">
-              <FaLock className="icon" />
               <input 
                 type="password" 
                 value={confirmPassword} 
@@ -134,7 +131,7 @@ export default function SignupPage(props) {
                 placeholder="Confirm password" 
               />
             </div>
-            <label className="input-label">Gender</label>
+            <label className="input-label">Gender <FaUser className="icon" /></label>
             <div className="input-row">
               <select value={gender} onChange={e => setGender(e.target.value)}>
                 <option value="male">Male</option>
@@ -142,7 +139,7 @@ export default function SignupPage(props) {
               </select>
             </div>
 
-            <label className="input-label">Preferred language</label>
+            <label className="input-label">Preferred language <FaUser className="icon" /></label>
             <div className="input-row">
               <select value={language} onChange={e => setLanguage(e.target.value)}>
                 <option value="Afrikaans">Afrikaans</option>
