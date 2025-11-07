@@ -5,6 +5,7 @@ import Reports from "./pages/Reports"; // NEW
 import DetailedTickets from "./pages/DetailedTickets";
 import Admin from "./pages/Admin";
 import UserAdmin from "./pages/UserAdmin";
+import Graphs from "./pages/Graphs";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
       <Route path="*" element={<Navigate to="/" replace />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/user-admin" element={<UserAdmin />} />
+      <Route path="/graphs" element={<Graphs />} />
     </Routes>
   );
 }

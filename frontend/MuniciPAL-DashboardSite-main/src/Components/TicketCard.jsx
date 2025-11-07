@@ -3,8 +3,8 @@ function TicketCard({ ticket }) {
     ticket.status === "Pending"
       ? "bg-red-100"
       : ticket.status === "In Progress"
-      ? "bg-green-100"
-      : "bg-gray-200";
+      ? "bg-yellow-100"
+      : "bg-green-100"
 
       //time submitted
   return (

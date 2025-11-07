@@ -12,7 +12,7 @@ function Header() {
 
   //Detailed filter options
   const filterOptions = {
-    Status: ["In Progress", "Closed", "Pending"],
+    Status: ["In Progress", "Resolved", "Pending"],
     Type: ["Water", "Electrical", "Road"]
   }
 

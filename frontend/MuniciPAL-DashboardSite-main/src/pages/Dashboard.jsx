@@ -4,12 +4,23 @@ import Sidebar from "../Components/Sidebar";
 import Topbar from "../Components/Topbar";
 import ContactsModal from "../Components/ContactsModal";
 import LeaveCalendarModal from "../Components/LeaveCalendarModal";
+import UserDetailsModal from "../Components/UserDetailsModal";
 import { Ticket } from "lucide-react";
+import ResolvedPopup from "../Components/ResolvedPopup";
 
-const STATUSES = ["Pending", "In Progress", "Closed"];
+const STATUSES = ["Pending", "In Progress", "Resolved"];
 
 export default function Dashboard() {
   const loggedInUser = "Jayden"; // simulated logged-in user
+
+  const employeeData = {
+    empID: "emp-001",
+    name: "Jayden",
+    surname: "Menezes",
+    email: "Jayden@municipal.co.za",
+    phone: "0679629338",
+    jobTitle: "Front end developer",
+  }
 
   const [tickets, setTickets] = useState([
     {
@@ -18,6 +29,7 @@ export default function Dashboard() {
       status: "Pending",
       location: "Edenvale",
       createdAt: "2024-10-01",
+      ResolvedAt: null,
       description: "Users are unable to log in with correct credentials.",
       assignedTo: "Jayden",
       hasNewUpdate: false,
@@ -29,6 +41,7 @@ export default function Dashboard() {
       status: "In Progress",
       location: "Sandton",
       createdAt: "2024-10-02",
+      ResolvedAt: null,
       description: "Documentation needs updates for new API changes.",
       assignedTo: "Mikhaar",
       hasNewUpdate: false,
@@ -37,9 +50,10 @@ export default function Dashboard() {
     {
       id: 3,
       title: "Add dark mode",
-      status: "Closed",
+      status: "Resolved",
       location: "Bedfordview",
       createdAt: "2024-10-03",
+      ResolvedAt: null,
       description: "Feature implemented and merged successfully.",
       assignedTo: "Jayden",
       hasNewUpdate: false,
@@ -51,21 +65,28 @@ export default function Dashboard() {
       status: "In Progress",
       location: "Randburg",
       createdAt: "2024-10-04",
+      ResolvedAt: null,
       description: "Refactor ticket list layout and improve UI responsiveness.",
       assignedTo: "Jayden",
       hasNewUpdate: false,
       hasNewMessage: false,
     },
+    
   ]);
 
   const [openCount, setOpenCount] = useState(0);
   const [showContacts, setShowContacts] = useState(false);
   const [showCalendar, setShowCalendar] = useState(false);
+  const [showUserDetails, setShowUserDetails] = useState(false);
+  const [showResolvedPopup, setShowResolvedPopup] = useState(false);
+
+  const [notifications, setNotifications] = useState([]);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   //  Update open tickets count
   useEffect(() => {
     const assignedTickets = tickets.filter(
-      (t) => t.assignedTo === loggedInUser && t.status !== "Closed"
+      (t) => t.assignedTo === loggedInUser && t.status !== "Resolved"
     );
     setOpenCount(assignedTickets.length);
   }, [tickets]);
@@ -101,11 +122,32 @@ export default function Dashboard() {
 
   //  Change ticket status
   const handleStatusChange = (ticketId, newStatus) => {
+    if (newStatus === "Resolved") {
+      const ticket = tickets.find((t) => t.id === ticketId);
+      setShowResolvedPopup(ticket);}
+    else {
+      setTickets((prev) =>
+        prev.map((t) =>
+          t.id === ticketId ? {...t, status: newStatus} : t
+        )
+      );
+    }
+  };
+  
+  const confirmResolved = () => {
+    if (!showResolvedPopup) return;
+
+    const ticketId = showResolvedPopup.id;
+
     setTickets((prev) =>
       prev.map((t) =>
-        t.id === ticketId ? { ...t, status: newStatus, hasNewUpdate: true } : t
+        t.id === ticketId 
+          ? { ...t, status: "Resolved", hasNewUpdate: true, 
+            ResolvedAt: new Date().toISOString().slice(0,10),
+           } : t
       )
     );
+    setShowResolvedPopup(null);
   };
 
   const assignedTickets = tickets.filter(
@@ -120,8 +162,11 @@ export default function Dashboard() {
         {/* Topbar */}
         <Topbar
           username={loggedInUser}
+          notifications={notifications}
+          setNotifications={setNotifications}
           onOpenContacts={() => setShowContacts(true)}
           onOpenCalendar={() => setShowCalendar(true)}
+          onOpenEmployeeDetails={() => setShowUserDetails(true)}
         />
 
         {/* Open Tickets summary box */}
@@ -135,8 +180,8 @@ export default function Dashboard() {
         </div>
 
         {/* Tickets Board */}
-        <main className="flex-1 p-6 mt-2">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <main className="flex-1 p-6 mt-2 overflow-x-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 min-w-max lg:min-w-0">
             {STATUSES.map((status) => (
               <section key={status}>
                 <h2 className="font-semibold text-center mb-2">{status}</h2>
@@ -169,10 +214,10 @@ export default function Dashboard() {
                       >
                         <h3
                           className={`font-bold text-sm mb-1 ${ticket.status === "Pending"
-                              ? "text-yellow-600"
+                              ? "text-red-500"
                               : ticket.status === "In Progress"
-                                ? "text-blue-600"
-                                : "text-green-600"
+                                ? "text-yellow-500"
+                                : "text-green-500"
                             }`}
                         >
                           {ticket.status}
@@ -181,8 +226,8 @@ export default function Dashboard() {
                           className={`p-3 rounded ${ticket.status === "Pending"
                               ? "bg-red-100"
                               : ticket.status === "In Progress"
-                                ? "bg-green-100"
-                                : "bg-gray-100"
+                                ? "bg-yellow-100"
+                                : "bg-green-100"
                             }`}
                         >
                           <p className="font-semibold text-sm">{ticket.title}</p>
@@ -232,6 +277,16 @@ export default function Dashboard() {
         )}
         {showCalendar && (
           <LeaveCalendarModal onClose={() => setShowCalendar(false)} />
+        )}
+        {showUserDetails && (
+          <UserDetailsModal employee = {employeeData} onClose={() => setShowUserDetails(false)} />
+        )}
+        {showResolvedPopup && (
+          <ResolvedPopup 
+            ticket={showResolvedPopup}
+            onConfirm={confirmResolved}
+            onCancel={() => setShowResolvedPopup(null)}
+          />
         )}
       </div>
     </div>

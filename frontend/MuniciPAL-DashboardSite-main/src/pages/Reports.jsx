@@ -1,16 +1,19 @@
+import { useNavigate } from "react-router-dom";
 import { useMemo, useState } from "react";
 import Sidebar from "../Components/Sidebar";
-import Topbar from "../Components/Topbar";
+import ReportHeader from "../Components/ReportHeader";
 import ReportTable from "../Components/ReportTable"; // NEW table component
+
+
 
 // Mock data. Replace with API data later.
 const ALL_TICKETS = [
-  { id: 1, title: "Fix login bug", status: "Pending", type: "Bug", createdAt: "2025-01-03", owner: "Sam" },
-  { id: 2, title: "Update docs",   status: "In Progress", type: "Task", createdAt: "2025-02-10", owner: "Alex" },
-  { id: 3, title: "Add dark mode", status: "Closed", type: "Feature", createdAt: "2025-02-16", owner: "Mik" },
+  { id: 1, title: "Fix login bug", status: "Pending", type: "Bug", createdAt: "2025-01-03", ResolvedAt: "2025-01-04", owner: "Sam" },
+  { id: 2, title: "Update docs",   status: "In Progress", type: "Task", createdAt: "2025-02-10", ResolvedAt: "2025-02-14", owner: "Alex" },
+  { id: 3, title: "Add dark mode", status: "Resolved", type: "Feature", createdAt: "2025-02-16", ResolvedAt: "2025-02-18", owner: "Mik" },
 ];
 
-const STATUS = ["Pending", "In Progress", "Closed"];
+const STATUS = ["Pending", "In Progress", "Resolved"];
 const TYPES  = ["Bug", "Task", "Feature"];
 
 export default function Reports() {
@@ -22,6 +25,8 @@ export default function Reports() {
     to: "",
     owner: "",
   });
+
+  const navigate = useNavigate();
 
   // Filter logic (runs on every change)
   const rows = useMemo(() => {
@@ -59,16 +64,15 @@ export default function Reports() {
     URL.revokeObjectURL(url);
   }
 
-  const openCount = rows.filter(r => r.status !== "Closed").length;
+  const openCount = rows.filter(r => r.status !== "Resolved").length;
 
   return (
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col bg-gray-50">
-        <Topbar openCount={openCount} />
+        <ReportHeader openCount={openCount} />
 
         <main className="p-6 space-y-4">
-          <h2 className="text-xl font-bold">Reports</h2>
 
           {/* Filters */}
           <div className="bg-white border rounded-lg p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -129,6 +133,12 @@ export default function Reports() {
               onClick={() => setFilters({ q: "", status: "", type: "", from: "", to: "", owner: "" })}
             >
               Reset
+            </button>
+            <button
+              className="bg-blue-600 text-white px-3 py-1 rounded"
+              onClick={() => navigate("/graphs")}
+            >
+              Graphs
             </button>
           </div>
 

@@ -13,6 +13,7 @@ export default function Admin() {
     empCode: "",
     ticketTypes: [],
     status: "Active",
+    role: "Employee",
   });
   const [isEditing, setIsEditing] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -174,8 +175,21 @@ export default function Admin() {
                       className="border rounded px-2 py-1"
                     >
                       <option>Active</option>
-                      <option>Moderator</option>
                       <option>Banned</option>
+                    </select>
+                    <select
+                      value={emp.role || "Employee"}
+                      onChange={(e) => {
+                        const updated = [...employees];
+                        updated[index].role = e.target.value;
+                        setEmployees(updated);
+                        setUnsavedChanges((prev) => ({ ...prev, [index]: true }));
+                      }}
+                      className="border rounded px-2 py-1 ml-2"
+                    >
+                      <option>Employee</option>
+                      <option>Manager</option>
+                      <option>Admin</option>
                     </select>
                   </td>
                   <td className="border p-2 text-center">
@@ -297,8 +311,19 @@ export default function Admin() {
                   className="border px-3 py-2 rounded w-full"
                 >
                   <option>Active</option>
-                  <option>Moderator</option>
                   <option>Banned</option>
+                </select>
+
+                {/* Role DropDown */}
+                <select
+                  name="role"
+                  value={form.role || "Employee"}
+                  onChange={handleChange}
+                  className="border px-3 py-2 rounded w-full"
+                >
+                  <option>Employee</option>
+                  <option>Manager</option>
+                  <option>Admin</option>
                 </select>
 
                 <div className="flex justify-end">

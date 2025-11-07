@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../Components/Sidebar";
-import { Pencil, Plus, User } from "lucide-react";
+import { Check, Pencil, Plus, Trash2, User } from "lucide-react";
 
 export default function UserAdmin() {
   const [users, setUsers] = useState([]);
@@ -37,6 +37,21 @@ export default function UserAdmin() {
 
   // Email validation
   const isValidEmail = (email) => /\S+@\S+\.\S+/.test(email);
+
+  //Handles Delete User
+  const handleDelete = (index) => {
+    setDeleteIndex(index);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (deleteIndex !== null) {
+      const updated = users.filter((_, i) => i !== deleteIndex);
+      setUsers(updated);
+      setDeleteIndex(null);
+      setShowDeleteModal(false);
+    }
+  }
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -147,6 +162,7 @@ export default function UserAdmin() {
                         const updated = [...users];
                         updated[index].status = e.target.value;
                         setUsers(updated);
+                        setAlteredUsers((prev) => ({ ...prev, [index]: true }));
                       }}
                       className="border rounded px-2 py-1"
                     >
@@ -155,16 +171,17 @@ export default function UserAdmin() {
                     </select>
                     {" "}
                     <select
-                      value={user.status}
+                      value={user.role || "Member"}
                       onChange={(e) => {
                         const updated = [...users];
-                        updated[index].status = e.target.value;
+                        updated[index].role = e.target.value;
                         setUsers(updated);
+                        setAlteredUsers((prev) => ({ ...prev, [index]: true }));
                       }}
-                      className="border rounded px-2 py-1"
+                      className="border rounded px-2 py-1 ml-2"
                     >
-                      <option>Active</option>
-                      <option>Banned</option>
+                      <option>Member</option>
+                      <option>Moderator</option>
                     </select>
                   </td>
                   <td className="border p-2">{user.userId}</td>
@@ -175,6 +192,32 @@ export default function UserAdmin() {
                     >
                       <Pencil size={16} />
                     </button>
+                    
+                    <button
+                      onClick={() => handleDelete(index)}
+                      className="text-red-600 hover:text-red-800"
+                      title="Delete User"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    
+                    {alteredUsers[index] && (
+                      <button 
+                        onClick={() => {
+                          localStorage.setItem("users", JSON.stringify(users));
+                          setAlteredUsers((prev) => {
+                            const updated = { ...prev };
+                            delete updated[index];
+                            return updated;
+                          });
+                        }}
+                        className="text-green-600 hover:text-green-800"
+                        title="Save Changes"
+                      >
+                        <Check size={16} />
+                      </button>
+                    )
+                        }
                   </td>
                 </tr>
               ))}
@@ -251,6 +294,17 @@ export default function UserAdmin() {
                   <option>Banned</option>
                 </select>
 
+                {/* Role DropDown */}
+                <select
+                  name="role"
+                  value={form.role || "Member"}
+                  onChange={handleChange}
+                  className="border px-3 py-2 rounded w-full"
+                >
+                  <option>Member</option>
+                  <option>Moderator</option>
+                </select>
+
                 <div className="flex justify-end">
                   <button
                     type="submit"
@@ -260,6 +314,31 @@ export default function UserAdmin() {
                   </button>
                 </div>
               </form>
+            </div>
+          </div>
+        )}
+        {/* Delete Confirmation Modal */}
+        {showDeleteModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-30">
+            <div className="bg-white rounded-lg p-6 w-[400px] shadow-lg text-center">
+              <h2 className="text-lg font-semibold mb-4">Confirm Delete</h2>
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this user?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={confirmDelete}
+                  className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 transition"
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="bg-gray-300 text-gray-700 px-4 py-2 rounded hover:bg-gray-400 transition"
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         )}
