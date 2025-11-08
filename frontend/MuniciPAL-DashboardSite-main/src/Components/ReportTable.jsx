@@ -10,7 +10,6 @@ export default function ReportTable({ rows }) {
             <Th>Type</Th>
             <Th>Owner</Th>
             <Th>Created</Th>
-            <Th>Resolved</Th>
           </tr>
         </thead>
         <tbody>
@@ -29,7 +28,6 @@ export default function ReportTable({ rows }) {
               <Td>{r.type}</Td>
               <Td>{r.owner}</Td>
               <Td>{r.createdAt}</Td>
-              <Td>{r.ResolvedAt}</Td>
             </tr>
           ))}
         </tbody>

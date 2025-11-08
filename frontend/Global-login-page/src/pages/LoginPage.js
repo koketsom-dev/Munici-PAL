@@ -62,10 +62,12 @@ export default function LoginPage(props) {
             <h1 className="welcome">{mode === 'employee' ? 'Administrator Login' : 'Welcome back!'}</h1>
           </div>
           <div className="fields">
-            <label className="input-label">Username / Email</label>
-            <div className="input-row"><FaUser className="icon" /><input placeholder="Enter your username" /></div>
-            <label className="input-label">Password</label>
-            <div className="input-row"><FaLock className="icon" /><input type="password" placeholder="Enter your password" /></div>
+
+            <label className="input-label">Username / Email <FaUser className="icon" /></label>
+            <div className="input-row"><input placeholder="Enter your username" /></div>
+            <label className="input-label">Password <FaLock className="icon" /></label>
+            <div className="input-row"><input type="password" placeholder="Enter your password" /></div>
+
 
             {error && <div className="error-message" style={{color: 'red', textAlign: 'center', margin: '10px 0'}}>{error}</div>}
 
@@ -78,7 +80,10 @@ export default function LoginPage(props) {
               {loading ? 'Logging in...' : 'Login'}
             </button>
             
-            <div className="signup-line">Don't have an account? <Link to="/signup" className="linkish">SIGN UP </Link></div>
+            {mode !== 'employee' && (
+              <div className="signup-line">Don't have an account? <Link to="/signup" className="linkish">SIGN UP </Link></div>
+            )}
+
           </div>
         </form>
       </div>

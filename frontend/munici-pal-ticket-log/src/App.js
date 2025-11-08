@@ -17,10 +17,19 @@ function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [notifications, setNotifications] = useState([
+<<<<<<< HEAD
     { id: 1, text: 'Your ticket #TKT-001 has been resolved', read: false },
     { id: 2, text: 'New message in community chat', read: false },
     { id: 3, text: 'Water outage reported in your area', read: true }
   ]);
+=======
+    { id: 1, text: 'Your ticket #TKT-001 has been resolved', read: false, ticketId: 'TKT-001', type: 'update' },
+    { id: 2, text: 'New message in community chat', read: false, ticketId: null },
+    { id: 3, text: 'Water outage reported in your area', read: true, ticketId: null }
+  ]);
+  
+  const [followedTickets, setFollowedTickets] = useState([]);
+>>>>>>> Signup
   const [chatMessages, setChatMessages] = useState([
     { id: 1, user: 'Sarah K', message: 'Has anyone reported the pothole on Main St?', time: '10:30 AM' },
     { id: 2, user: 'John M', message: 'Yes, I reported it yesterday. Status is "In Progress"', time: '10:45 AM' },
@@ -61,9 +70,63 @@ function App() {
     { id: 6, name: 'Suggestion', icon: '💡' },
     { id: 7, name: 'Help', icon: '❓' },
     { id: 8, name: 'About', icon: 'ℹ️' },
+<<<<<<< HEAD
     { id: 8, name: 'Logout', icon: '🚪', isLogout: true }
   ];
 
+=======
+    { id: 9, name: 'Logout', icon: '🚪', isLogout: true }
+  ];
+
+  const handleFollowTicket = (ticketId) => {
+    const isCurrentlyFollowing = followedTickets.includes(ticketId);
+    
+    // Remove any existing follow/unfollow notifications for this ticket
+    setNotifications(prev => 
+      prev.filter(n => !(
+        n.ticketId === ticketId && 
+        (n.type === 'follow' || n.type === 'unfollow') &&
+        !n.read
+      ))
+    );
+
+    // Create single new notification
+    const newNotification = {
+      id: Date.now(),
+      text: isCurrentlyFollowing
+        ? `You have unfollowed ticket #${ticketId}. You will no longer receive updates.`
+        : `You are now following ticket #${ticketId}. You'll receive updates when its status changes.`,
+      read: false,
+      ticketId: ticketId,
+      type: isCurrentlyFollowing ? 'unfollow' : 'follow',
+      ts: Date.now()
+    };
+
+    // Update notifications and followedTickets
+    setNotifications(prev => [newNotification, ...prev]);
+    setFollowedTickets(prev => 
+      isCurrentlyFollowing 
+        ? prev.filter(id => id !== ticketId)
+        : [...prev, ticketId]
+    );
+  };
+
+  // Create ticket and add a notification at the top
+  const handleCreateTicket = (ticketData) => {
+    const ticketId = `TKT-${String(Date.now()).slice(-6)}`;
+    const newNotification = {
+      id: Date.now(),
+      text: `New ticket ${ticketId} created: ${ticketData.title || 'No title'}`,
+      read: false,
+      ticketId: ticketId,
+      type: 'create',
+      ts: Date.now()
+    };
+    setNotifications(prev => [newNotification, ...prev]);
+    return ticketId;
+  };
+
+>>>>>>> Signup
   const handleMenuClick = (itemName) => {
     console.log(`Clicked: ${itemName}`);
     setIsMenuOpen(false);
@@ -150,7 +213,11 @@ function App() {
   const renderPage = () => {
     switch(currentPage) {
       case 'create-ticket':
+<<<<<<< HEAD
         return <CreateTicketPage goBack={() => setCurrentPage('dashboard')} />;
+=======
+        return <CreateTicketPage goBack={() => setCurrentPage('dashboard')} onCreateTicket={handleCreateTicket} />;
+>>>>>>> Signup
       case 'chat-forum':
         return <ChatForumPage 
           messages={chatMessages}
@@ -162,7 +229,15 @@ function App() {
         case 'my-profile':
         return <MyProfilePage goBack={() => setCurrentPage('dashboard')} />;
       case 'ticket-history':
+<<<<<<< HEAD
         return <MyTicketHistoryPage goBack={() => setCurrentPage('dashboard')} />;
+=======
+        return <MyTicketHistoryPage 
+          goBack={() => setCurrentPage('dashboard')}
+          followedTickets={followedTickets}
+          onFollowTicket={handleFollowTicket}
+        />;
+>>>>>>> Signup
       case 'feedback':
         return <FeedbackPage goBack={() => setCurrentPage('dashboard')} />;
       case 'technical-issue':
@@ -216,9 +291,27 @@ function App() {
                   <div 
                     key={notification.id} 
                     className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+<<<<<<< HEAD
                     onClick={() => markNotificationAsRead(notification.id)}
                   >
                     {notification.text}
+=======
+                  >
+                    <div onClick={() => markNotificationAsRead(notification.id)}>
+                      {notification.text}
+                    </div>
+                    {notification.ticketId && notification.type !== 'unfollow' && (
+                      <button
+                        className={`notification-follow-btn ${followedTickets.includes(notification.ticketId) ? 'following' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleFollowTicket(notification.ticketId);
+                        }}
+                      >
+                        {followedTickets.includes(notification.ticketId) ? 'Following' : '+ Follow'}
+                      </button>
+                    )}
+>>>>>>> Signup
                   </div>
                 ))
               )}

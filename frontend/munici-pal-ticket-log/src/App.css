@@ -126,11 +126,20 @@ body {
 }
 
 .notification-dropdown {
+<<<<<<< HEAD
   display: none;
   position: absolute;
   top: 100%;
   right: auto;
   left: 50%;
+=======
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  left: auto;
+>>>>>>> Signup
   background-color: white;
   color: var(--text-color);
   border-radius: 8px;
@@ -138,6 +147,7 @@ body {
   width: 350px;
   padding: 15px;
   z-index: 9999;
+<<<<<<< HEAD
   margin-top: 10px;
   transform: translateZ(0);
   max-height: 80vh;
@@ -147,6 +157,22 @@ body {
 .notifications:hover .notification-dropdown,
 .notifications:focus-within .notification-dropdown {
   display: block;
+=======
+  margin-top: 0;
+  transform: none;
+  max-height: 80vh;
+  overflow-y: auto;
+  transition: opacity 0.18s ease, visibility 0.18s;
+  pointer-events: none;
+}
+
+.notifications:hover .notification-dropdown,
+.notification-dropdown:hover,
+.notifications:focus-within .notification-dropdown {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: all;
+>>>>>>> Signup
 }
 
 .notification-dropdown h3 {
@@ -160,16 +186,60 @@ body {
 .notification-item {
   padding: 12px 0;
   border-bottom: 1px solid var(--light-gray);
+<<<<<<< HEAD
   cursor: pointer;
   font-size: 0.9rem;
   transition: background-color 0.2s;
   border-radius: 4px;
   padding-left: 8px;
   padding-right: 8px;
+=======
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  border-radius: 4px;
+  padding: 12px 8px;
+>>>>>>> Signup
   word-wrap: break-word;
   overflow-wrap: break-word;
   white-space: normal;
   line-height: 1.4;
+<<<<<<< HEAD
+=======
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.notification-follow-btn {
+  background: none;
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
+  padding: 4px 12px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.notification-follow-btn.following {
+  background-color: var(--success-color);
+  border-color: var(--success-color);
+  color: white;
+}
+
+.notification-follow-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.notification-follow-btn.following:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+>>>>>>> Signup
 }
 
 .notification-item:hover {
@@ -267,7 +337,11 @@ body {
   width: 30px;
   height: 30px;
   display: flex;
+<<<<<<< HEAD
   align-items: center;
+=======
+  align-items: right;
+>>>>>>> Signup
   justify-content: center;
   border-radius: 50%x;
 }
@@ -1636,3 +1710,51 @@ select:focus-visible {
     padding: 25px 15px;
   }
 }
+<<<<<<< HEAD
+=======
+
+/* Ticket following feature styles */
+.ticket-actions {
+  display: flex;
+  gap: 15px;
+  justify-content: flex-end;
+  margin-top: 15px;
+}
+
+.follow-btn {
+  background-color: #6c757d;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.follow-btn.following {
+  background-color: #28a745;
+}
+
+.follow-btn:hover {
+  transform: translateY(-1px);
+}
+
+.follow-btn.following:hover {
+  background-color: #218838;
+}
+
+.ticket-notification {
+  background-color: #e3f2fd;
+  border-left: 4px solid var(--primary-color);
+  padding: 10px 15px;
+  margin-top: 10px;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  color: var(--primary-color);
+}
+
+.ticket-notification.update {
+  background-color: #fff3cd;
+  border-left-color: #ffc107;
+  color: #856404;
+}
+>>>>>>> Signup

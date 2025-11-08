@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 -- ENUM TYPES
 CREATE TYPE province_enum AS ENUM ('Eastern Cape','Free State','Gauteng','KwaZulu-Natal','Limpopo','Mpumalanga','Northern Cape','North West','Western Cape');
 CREATE TYPE gender_enum AS ENUM ('Female','Male','Other');
@@ -136,3 +137,4 @@ CREATE TABLE ChatMessages (
     message_description VARCHAR(255),
     message_sent_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+

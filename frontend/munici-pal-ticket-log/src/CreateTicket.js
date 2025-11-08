@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 
+<<<<<<< HEAD
 function CreateTicketPage({ goBack }) {
+=======
+function CreateTicketPage({ goBack, onCreateTicket }) {
+>>>>>>> Signup
   const [ticketData, setTicketData] = useState({
     title: '',
     description: '',
@@ -25,17 +29,69 @@ function CreateTicketPage({ goBack }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+<<<<<<< HEAD
     alert('Ticket submitted successfully!');
+=======
+    // Call parent handler to create ticket and add notification
+    if (typeof onCreateTicket === 'function') {
+      const ticketId = onCreateTicket(ticketData);
+      alert(`Ticket ${ticketId} submitted successfully!`);
+    } else {
+      alert('Ticket submitted successfully!');
+    }
+>>>>>>> Signup
     goBack();
   };
 
   return (
     <div className="create-ticket-page">
       <div className="page-header">
+<<<<<<< HEAD
         <button className="back-btn" onClick={goBack}>
           <span className="back-icon">←</span>
           Back to Dashboard
         </button>
+=======
+        <button onClick={goBack} style={{
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#e5e7eb',
+          color: '#1f2937',
+          padding: '8px 12px',
+          borderRadius: '6px',
+          border: 'none',
+          cursor: 'pointer',
+          transition: 'all 0.3s',
+          fontSize: '14px',
+          fontWeight: '500',
+          fontFamily: 'inherit'
+        }}
+        onMouseOver={(e) => {
+          e.target.style.backgroundColor = '#d1d5db';
+          e.target.style.transform = 'translateY(-1px)';
+        }}
+        onMouseOut={(e) => {
+          e.target.style.backgroundColor = '#e5e7eb';
+          e.target.style.transform = 'translateY(0)';
+          }}
+          >
+            <svg 
+            style={{ 
+              width: '20px', 
+              height: '20px', 
+              marginRight: '8px',
+              flexShrink: 0
+              }} 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24" 
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span>Back</span>
+          </button>
+>>>>>>> Signup
         <h1>Create a New Ticket</h1>
         <p>Report Munici-PAL issues in your area</p>
       </div>
