@@ -1,13 +1,6 @@
 // Unified API Service for Munici-PAL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-// Helper function to get auth headers (no tokens, using session-based auth)
-const getAuthHeaders = () => {
-  return {
-    'Content-Type': 'application/json'
-  };
-};
-
 // Helper function to handle API responses
 const handleResponse = async (response) => {
   let data;
@@ -24,13 +17,25 @@ const handleResponse = async (response) => {
     });
     throw new Error(`Invalid response from server: ${response.status} - ${e.message}`);
   }
-  
+
   if (!response.ok) {
     const errorMessage = data.message || data.error || `Request failed: ${response.status}`;
     throw new Error(errorMessage);
   }
-  
+
   return data;
+};
+
+// Helper function for authenticated requests
+const authenticatedFetch = (url, options = {}) => {
+  return fetch(url, {
+    ...options,
+    credentials: 'include', // Include cookies for session authentication
+    headers: {
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
+  });
 };
 
 // Authentication API
@@ -41,6 +46,7 @@ export const authAPI = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({
         email,
         password,
@@ -67,7 +73,7 @@ export const authAPI = {
     try {
       await fetch(`${API_BASE_URL}/login/logout.php`, {
         method: 'POST',
-        headers: getAuthHeaders()
+        credentials: 'include'
       });
     } catch (error) {
       console.error('Logout error:', error);
@@ -78,7 +84,7 @@ export const authAPI = {
   verify: async () => {
     const response = await fetch(`${API_BASE_URL}/login/verify.php`, {
       method: 'GET',
-      headers: getAuthHeaders()
+      credentials: 'include'
     });
 
     return handleResponse(response);
@@ -90,10 +96,16 @@ export const authAPI = {
       headers: {
         'Content-Type': 'application/json',
       },
+      credentials: 'include',
       body: JSON.stringify({ email })
     });
 
     return handleResponse(response);
+  },
+
+  isLoggedIn: () => {
+    const userStr = localStorage.getItem('user');
+    return !!userStr;
   }
 };
 
@@ -107,16 +119,15 @@ export const forumAPI = {
     if (isPrivate !== null) {
       url += `&is_private=${isPrivate}`;
     }
-    const response = await fetch(url, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(url, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   addMessage: async (subject, message, roomId = 1, ticketId = null, isPrivate = null) => {
-    const body = { 
+    const body = {
       message_subject: subject,
       message_description: message,
       room_id: roomId,
@@ -125,9 +136,8 @@ export const forumAPI = {
     if (ticketId) {
       body.ticket_id = ticketId;
     }
-    const response = await fetch(`${API_BASE_URL}/forum/add-message.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/forum/add-message.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(body)
     });
 
@@ -138,9 +148,8 @@ export const forumAPI = {
 // Ticket API
 export const ticketAPI = {
   create: async (ticketData) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/add-ticket.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/add-ticket.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(ticketData)
     });
 
@@ -152,27 +161,24 @@ export const ticketAPI = {
     const isAdmin = user && user.access_level === 'Admin';
     const endpoint = isAdmin ? `${API_BASE_URL}/admin/get-all-tickets.php` : `${API_BASE_URL}/ticket/get-my-tickets.php`;
     const queryParams = new URLSearchParams(filters);
-    const response = await fetch(`${endpoint}?${queryParams}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${endpoint}?${queryParams}`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   getById: async (ticketId) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/ticket-search.php?id=${ticketId}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/ticket-search.php?id=${ticketId}`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   update: async (ticketId, updateData) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/update-ticket.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/update-ticket.php`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         ticket_id: ticketId,
         ...updateData
@@ -183,9 +189,8 @@ export const ticketAPI = {
   },
 
   delete: async (ticketId) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/delete-ticket.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/delete-ticket.php`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ ticket_id: ticketId })
     });
 
@@ -193,18 +198,16 @@ export const ticketAPI = {
   },
 
   search: async (searchTerm) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/ticket-search.php?search=${encodeURIComponent(searchTerm)}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/ticket-search.php?search=${encodeURIComponent(searchTerm)}`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   sort: async (sortBy, order = 'ASC') => {
-    const response = await fetch(`${API_BASE_URL}/ticket/sort-ticket.php?sort_by=${sortBy}&order=${order}`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/sort-ticket.php?sort_by=${sortBy}&order=${order}`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
@@ -225,9 +228,8 @@ export const ticketAPI = {
   },
 
   assign: async (ticketId, employeeId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/assign-ticket.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/assign-ticket.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         ticket_id: ticketId,
         assignee_id: employeeId
@@ -241,9 +243,8 @@ export const ticketAPI = {
 // Dashboard API
 export const dashboardAPI = {
   getStats: async () => {
-    const response = await fetch(`${API_BASE_URL}/api/dashboard/stats.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/api/dashboard/stats.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
@@ -253,18 +254,16 @@ export const dashboardAPI = {
 // Notification API
 export const notificationAPI = {
   list: async () => {
-    const response = await fetch(`${API_BASE_URL}/ticket/notifications.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/notifications.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   markRead: async (notificationIds) => {
-    const response = await fetch(`${API_BASE_URL}/ticket/notifications.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/ticket/notifications.php`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ notification_ids: notificationIds })
     });
 
@@ -275,18 +274,16 @@ export const notificationAPI = {
 // Admin API
 export const adminAPI = {
   getEmployees: async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/get-employees.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/get-employees.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   assignTicket: async (ticketId, assigneeId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/assign-ticket.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/assign-ticket.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         ticket_id: ticketId,
         assignee_id: assigneeId,
@@ -297,9 +294,8 @@ export const adminAPI = {
   },
 
   addEmployee: async (employeeData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/add-employee.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/add-employee.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(employeeData)
     });
 
@@ -307,9 +303,8 @@ export const adminAPI = {
   },
 
   updateEmployee: async (employeeId, updateData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/update-employee.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/update-employee.php`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         employee_id: employeeId,
         ...updateData
@@ -320,9 +315,8 @@ export const adminAPI = {
   },
 
   deleteEmployee: async (employeeId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/delete-employee.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/delete-employee.php`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ employee_id: employeeId })
     });
 
@@ -331,18 +325,16 @@ export const adminAPI = {
 
   // Community User Management
   getCommunityUsers: async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/get-community-users.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/get-community-users.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   addCommunityUser: async (userData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/add-community-user.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/add-community-user.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(userData)
     });
 
@@ -350,9 +342,8 @@ export const adminAPI = {
   },
 
   updateCommunityUser: async (userId, updateData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/update-community-user.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/update-community-user.php`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify({
         user_id: userId,
         ...updateData
@@ -363,9 +354,8 @@ export const adminAPI = {
   },
 
   deleteCommunityUser: async (userId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/delete-community-user.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/delete-community-user.php`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ user_id: userId })
     });
 
@@ -374,18 +364,16 @@ export const adminAPI = {
 
   // Contacts Management
   getContacts: async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/get-contacts.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/get-contacts.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   addContact: async (contactData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/add-contact.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/add-contact.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(contactData)
     });
 
@@ -393,9 +381,8 @@ export const adminAPI = {
   },
 
   deleteContact: async (contactId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/delete-contact.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/delete-contact.php`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ contact_id: contactId })
     });
 
@@ -404,18 +391,16 @@ export const adminAPI = {
 
   // Leave Calendar Management
   getLeaveEntries: async () => {
-    const response = await fetch(`${API_BASE_URL}/admin/get-leave-entries.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/get-leave-entries.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   addLeaveEntry: async (leaveData) => {
-    const response = await fetch(`${API_BASE_URL}/admin/add-leave-entry.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/add-leave-entry.php`, {
       method: 'POST',
-      headers: getAuthHeaders(),
       body: JSON.stringify(leaveData)
     });
 
@@ -423,9 +408,8 @@ export const adminAPI = {
   },
 
   deleteLeaveEntry: async (leaveId) => {
-    const response = await fetch(`${API_BASE_URL}/admin/delete-leave-entry.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/admin/delete-leave-entry.php`, {
       method: 'DELETE',
-      headers: getAuthHeaders(),
       body: JSON.stringify({ leave_id: leaveId })
     });
 
@@ -450,18 +434,16 @@ export const userAPI = {
   },
 
   getProfile: async () => {
-    const response = await fetch(`${API_BASE_URL}/user/get-profile.php`, {
-      method: 'GET',
-      headers: getAuthHeaders()
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/get-profile.php`, {
+      method: 'GET'
     });
 
     return handleResponse(response);
   },
 
   updateProfile: async (profileData) => {
-    const response = await fetch(`${API_BASE_URL}/user/update-profile.php`, {
+    const response = await authenticatedFetch(`${API_BASE_URL}/user/update-profile.php`, {
       method: 'PUT',
-      headers: getAuthHeaders(),
       body: JSON.stringify(profileData)
     });
 

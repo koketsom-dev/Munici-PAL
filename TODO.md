@@ -1,13 +1,19 @@
-# TODO: Make Munici-PAL App Function with Real Data (No Tokens)
+# TODO: Make Munici-PAL App Function with Real Data (Simple Sessions & Cookies Only)
 
-## 1. Update Authentication System
-- [ ] Replace dummy Auth::authenticate() with real session-based authentication in `backend/utils/Auth.php`
-- [ ] Update `backend/login/login.php` to properly set session data after successful authentication
-- [ ] Update `backend/login/verify.php` to check real session data instead of dummy data
-- [ ] Update `backend/login/logout.php` to properly destroy session
+## IMPORTANT: Use Simple Development Approach
+- [ ] **CRITICAL**: Audit entire app and remove any complex authentication (Auth class, JWT, tokens)
+- [ ] **CRITICAL**: Replace ALL Auth::authenticate() calls with direct session_start() and $_SESSION checks
+- [ ] **CRITICAL**: Use only PHP sessions and browser cookies - no complex auth systems
+- [ ] **CRITICAL**: Remove backend/utils/Auth.php entirely if not needed for simple session management
 
-## 2. Update Backend Endpoints
-- [ ] Update all admin endpoints to use real authentication:
+## 1. Update Authentication System (Simple Sessions Only)
+- [x] Replace dummy Auth::authenticate() with real session-based authentication in `backend/utils/Auth.php`
+- [x] Update `backend/login/login.php` to properly set session data after successful authentication
+- [x] Update `backend/login/verify.php` to check real session data instead of dummy data
+- [x] Update `backend/login/logout.php` to properly destroy session
+
+## 2. Update Backend Endpoints (Remove Auth Class Usage)
+- [ ] Update all admin endpoints to use simple session checks:
   - `backend/admin/get-all-tickets.php`
   - `backend/admin/get-employees.php`
   - `backend/admin/get-community-users.php`
@@ -19,7 +25,7 @@
   - `backend/admin/get-leave-entries.php`
   - `backend/admin/add-leave-entry.php`
   - And other admin endpoints
-- [ ] Update ticket endpoints:
+- [x] Update ticket endpoints:
   - `backend/ticket/get-my-tickets.php`
   - `backend/ticket/add-ticket.php`
 - [ ] Update forum endpoints:
@@ -27,15 +33,16 @@
   - `backend/forum/add-message.php`
 - [ ] Update dashboard endpoints:
   - `backend/api/dashboard/stats.php`
-- [ ] Update user endpoints:
+- [x] Update user endpoints:
   - `backend/user/get-profile.php`
   - `backend/user/update-profile.php`
 
-## 3. Remove Token References
-- [ ] Remove any token-related code from `frontend/src/services/api.js`
-- [ ] Ensure no token storage or usage in frontend
+## 3. Remove Complex Auth References
+- [x] Remove any token-related code from `frontend/src/services/api.js`
+- [x] Ensure no token storage or usage in frontend
 - [ ] Remove `generate_token.php` file if it exists
 - [ ] Clean up any JWT or token references in config files
+- [ ] Remove Auth class usage from bootstrap.php
 
 ## 4. Populate Database with Initial Data
 - [ ] Create script to insert initial municipality data

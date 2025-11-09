@@ -1,6 +1,5 @@
 <?php
 require_once '../bootstrap.php';
-require_once '../utils/Auth.php';
 require_once '../utils/Database.php';
 
 // Allow only POST requests
@@ -9,11 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Authenticate the user
-try {
-    $user = Auth::authenticate();
-} catch (Exception $e) {
-    Response::unauthorized($e->getMessage());
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
+
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+    Response::unauthorized("User not authenticated");
+}
+
+$user = [
+    'user_id' => $_SESSION['user_id'],
+    'user_type' => $_SESSION['user_type'],
+    'municipality_id' => $_SESSION['municipality_id'] ?? 1
+];
 
 // Check if the user is an admin (access_level should be 'Admin')
 $db = new Database();

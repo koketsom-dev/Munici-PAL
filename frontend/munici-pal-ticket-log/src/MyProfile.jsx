@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { userAPI } from '../../src/services/api';
+import { userAPI, authAPI } from '../../src/services/api';
 
 function MyProfilePage({ goBack }) {
   const [formData, setFormData] = useState({
@@ -28,12 +28,18 @@ function MyProfilePage({ goBack }) {
   const fetchProfileData = async () => {
     try {
       setLoading(true);
+      // Only fetch profile if user is authenticated
+      if (!authAPI.isLoggedIn()) {
+        setErrors({ fetch: 'User not authenticated' });
+        return;
+      }
+
       const response = await userAPI.getProfile();
       if (response.success && response.data) {
         const user = response.data;
         const currentUser = userAPI.getCurrentUser();
         setUserType(currentUser?.user_type || 'community');
-        
+
         if (currentUser?.user_type === 'employee') {
           setFormData(prev => ({
             ...prev,

@@ -28,6 +28,11 @@ function App() {
     let active = true;
 
     const fetchNotifications = async () => {
+      // Only fetch notifications if user is authenticated
+      if (!authAPI.isLoggedIn()) {
+        return;
+      }
+
       try {
         const response = await notificationAPI.list();
         if (response.success && Array.isArray(response.data) && active) {

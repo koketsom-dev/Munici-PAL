@@ -1,15 +1,22 @@
 <?php
 require_once '../bootstrap.php';
-require_once '../utils/Auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     Response::error("Method not allowed", 405);
 }
 
+// Start session
+session_start();
+
+// Check if user is logged in
+if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+    Response::error("User not authenticated", 401);
+}
+
+$userId = $_SESSION['user_id'];
+$userType = $_SESSION['user_type'] ?? 'community';
+
 try {
-    $auth = Auth::authenticate();
-    $userId = $auth['user_id'];
-    $userType = $auth['user_type'] ?? 'community';
 
     $database = new Database();
     $db = $database->connect();
@@ -19,14 +26,20 @@ try {
     }
 
     if ($userType === 'employee') {
-        $query = "SELECT id, municipality_id, first_name, surname, email, gender, 
-                         home_language, emp_job_title, province
-                  FROM Employee
-                  WHERE id = :user_id";
+        $query = "SELECT e.id, e.municipality_id, e.first_name, e.surname, e.email, e.gender,
+                         e.home_language, e.emp_job_title, e.province, e.access_level,
+                         e.ticket_alloc_road, e.ticket_alloc_electricity, e.ticket_alloc_water, e.ticket_alloc_refuse,
+                         m.municipality_name
+                  FROM Employee e
+                  LEFT JOIN MunicipalityRegion m ON e.municipality_id = m.municipality_id
+                  WHERE e.id = :user_id";
     } else {
-        $query = "SELECT id, municipality_id, full_name, email, gender, home_language
-                  FROM CommunityUser
-                  WHERE id = :user_id";
+        $query = "SELECT cu.id, cu.municipality_id, cu.full_name, cu.email, cu.gender, cu.home_language,
+                         cu.registration_date, cu.issue_report_count, cu.is_moderator,
+                         m.municipality_name
+                  FROM CommunityUser cu
+                  LEFT JOIN MunicipalityRegion m ON cu.municipality_id = m.municipality_id
+                  WHERE cu.id = :user_id";
     }
 
     $stmt = $db->prepare($query);

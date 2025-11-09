@@ -35,8 +35,18 @@ try {
     // Update last login
     updateLastLogin($db, $user['user_type'], $user['id']);
 
-    // Set session data using Auth::login
-    Auth::login($user);
+    // Set session data directly
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
+    $_SESSION['user_id'] = $user['id'];
+    $_SESSION['user_type'] = $user['user_type'];
+    $_SESSION['email'] = $user['email'];
+    $_SESSION['municipality_id'] = $user['municipality_id'] ?? 1;
+
+    // Regenerate session ID for security
+    session_regenerate_id(true);
 
     // Prepare response
     $responseData = [

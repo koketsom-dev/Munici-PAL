@@ -20,8 +20,13 @@ function MyTicketHistoryPage({ goBack }) {
         throw new Error('You must be logged in to view tickets');
       }
 
+      // Only fetch tickets if user is authenticated
+      if (!authAPI.isLoggedIn()) {
+        throw new Error('User not authenticated');
+      }
+
       const response = await ticketAPI.list({});
-      
+
       if (response.success && response.data) {
         const formattedTickets = response.data.map(ticket => {
           const ticketId = ticket.id || ticket.ticket_id;
