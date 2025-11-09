@@ -24,17 +24,21 @@ export default function Sidebar() {
       {/* Logo (clickable toggle) */}
       <div
         onClick={() => setCollapsed((v) => !v)}
-        className="flex items-center gap-3 mx-3 mb-6 mt-2 cursor-pointer select-none"
+        className="mx-3 mb-6 mt-2 cursor-pointer select-none"
         title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
-        <div className="w-12 h-12 flex items-center justify-center rounded-full bg-white shrink-0">
-          <MunicipalIcon className="w-8 h-8 text-blue-500" />
+        {/* Logo row */}
+        <div className={`flex ${collapsed ? "justify-center" : "items-center"}`}>
+          <div className="w-12 h-12 flex items-center justify-center rounded-full bg-white shrink-0">
+            <MunicipalIcon className="w-8 h-8 text-blue-500" />
+          </div>
+
+          {!collapsed && (
+            <span className="ml-3 font-semibold text-base whitespace-nowrap">
+              Munici-PAL
+            </span>
+          )}
         </div>
-        {!collapsed && (
-          <span className="font-semibold text-base whitespace-nowrap">
-            Munici-PAL
-          </span>
-        )}
       </div>
 
       {/* Nav items */}
@@ -43,17 +47,15 @@ export default function Sidebar() {
           <Link
             key={item.to}
             to={item.to}
-            className={`group flex items-center rounded-md px-3 py-2 transition-colors ${
-              isActive(item.to)
+            className={`group flex items-center rounded-md px-3 py-2 transition-colors ${isActive(item.to)
                 ? "bg-slate-700 text-white"
                 : "text-slate-200 hover:bg-slate-800"
-            }`}
+              }`}
           >
             <span className="w-6 text-lg text-center">{item.icon}</span>
             <span
-              className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${
-                collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"
-              }`}
+              className={`whitespace-nowrap overflow-hidden transition-all duration-300 ${collapsed ? "opacity-0 w-0 ml-0" : "opacity-100 w-auto ml-2"
+                }`}
             >
               {item.label}
             </span>
