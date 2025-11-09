@@ -12,12 +12,12 @@ export default function App() {
     <Routes>
       <Route path="/" element={<Dashboard />} />
       <Route path="/tickets" element={<Tickets />} />
-      <Route path="/reports" element={<Reports />} /> {/* NEW */}
+      <Route path="/reports" element={<Reports />} />
       <Route path="/tickets/:id" element={<DetailedTickets />} />
-      <Route path="*" element={<Navigate to="/" replace />} />
       <Route path="/admin" element={<Admin />} />
       <Route path="/user-admin" element={<UserAdmin />} />
       <Route path="/graphs" element={<Graphs />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

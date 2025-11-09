@@ -13,13 +13,13 @@ define('APP_TIMEZONE', 'UTC');
 
 // CORS Configuration
 define('ALLOWED_ORIGINS', [
+    'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:3001', 
     'http://localhost:3002'
 ]);
 
-// Security Configuration
-define('JWT_SECRET', getenv('JWT_SECRET') ?: 'your-super-secret-jwt-key-change-this-in-production');
+// Security Configuration - JWT removed
 
 // Logging Configuration
 define('LOG_PATH', __DIR__ . '/../logs/');

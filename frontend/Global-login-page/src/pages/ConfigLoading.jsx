@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function ConfigLoading() {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
   const [hasRedirected, setHasRedirected] = useState(false);
@@ -49,9 +51,9 @@ export default function ConfigLoading() {
         if (user && token) {
           const userData = JSON.parse(user);
           if (userData.user_type === 'employee') {
-            window.location.href = 'http://localhost:3000/dashboard';
+            navigate('/dashboard');
           } else {
-            window.location.href = 'http://localhost:3001/tickets';
+            navigate('/community');
           }
         }
       }

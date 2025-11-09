@@ -9,13 +9,8 @@ error_log("=== Registration Request Started ===");
 error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
 error_log("Content Type: " . ($_SERVER['CONTENT_TYPE'] ?? 'Not set'));
 
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../utils/response.php';
-
-header("Access-Control-Allow-Origin: http://localhost:3000");
-header("Content-Type: application/json; charset=UTF-8");
-header("Access-Control-Allow-Methods: POST");
-header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+require_once __DIR__ . '/../bootstrap.php';
+require_once __DIR__ . '/../utils/Response.php';
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
@@ -62,7 +57,7 @@ try {
 
     error_log("Connecting to database...");
     $database = new Database();
-    $db = $database->getConnection();
+    $db = $database->connect();
     
     if (!$db) {
         error_log("Database connection failed");
@@ -94,10 +89,10 @@ try {
         error_log("Registering as employee");
         $query = "INSERT INTO Employee (
                     municipality_id, first_name, surname, email, password, 
-                    access_level, emp_job_title, province
+                    access_level, emp_job_title, province, gender, home_language
                   ) VALUES (
                     :municipality_id, :first_name, :surname, :email, :password,
-                    :access_level, :job_title, :province
+                    :access_level, :job_title, :province, :gender, :home_language
                   )";
         
         $stmt = $db->prepare($query);
@@ -110,8 +105,10 @@ try {
         $access_level = $input['access_level'] ?? 'Employee';
         $job_title = $input['job_title'] ?? 'Employee';
         $province = $input['province'] ?? 'Gauteng';
+        $gender = $input['gender'] ?? 'Other';
+        $home_language = $input['home_language'] ?? 'English';
         
-        error_log("Employee data - First: $first_name, Last: $surname, Access: $access_level, Job: $job_title");
+        error_log("Employee data - First: $first_name, Last: $surname, Access: $access_level, Job: $job_title, Gender: $gender, Language: $home_language");
         
         $stmt->bindParam(':municipality_id', $input['municipality_id']);
         $stmt->bindParam(':first_name', $first_name);
@@ -121,27 +118,31 @@ try {
         $stmt->bindParam(':access_level', $access_level);
         $stmt->bindParam(':job_title', $job_title);
         $stmt->bindParam(':province', $province);
+        $stmt->bindParam(':gender', $gender);
+        $stmt->bindParam(':home_language', $home_language);
 
     } else {
         // Register as Community User
         error_log("Registering as community user");
         $query = "INSERT INTO CommunityUser (
-                    municipality_id, full_name, email, password, province
+                    municipality_id, full_name, email, password, gender, home_language
                   ) VALUES (
-                    :municipality_id, :full_name, :email, :password, :province
+                    :municipality_id, :full_name, :email, :password, :gender, :home_language
                   )";
         
         $stmt = $db->prepare($query);
         
-        $province = $input['province'] ?? 'Gauteng';
+        $gender = $input['gender'] ?? 'Other';
+        $home_language = $input['home_language'] ?? 'English';
         
-        error_log("Community user data - Full: {$input['full_name']}, Province: $province");
+        error_log("Community user data - Full: {$input['full_name']}, Gender: $gender, Language: $home_language");
         
         $stmt->bindParam(':municipality_id', $input['municipality_id']);
         $stmt->bindParam(':full_name', $input['full_name']);
         $stmt->bindParam(':email', $input['email']);
         $stmt->bindParam(':password', $hashed_password);
-        $stmt->bindParam(':province', $province);
+        $stmt->bindParam(':gender', $gender);
+        $stmt->bindParam(':home_language', $home_language);
     }
 
     error_log("Executing query: " . $query);
@@ -165,4 +166,3 @@ try {
     error_log("Stack trace: " . $e->getTraceAsString());
     Response::error('Registration failed: ' . $e->getMessage());
 }
-?>

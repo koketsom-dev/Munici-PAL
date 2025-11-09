@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ticketAPI, userAPI } from '../../src/services/api';
 
 function OperationalIssuePage({ goBack }) {
   const [issue, setIssue] = useState({
@@ -6,6 +7,8 @@ function OperationalIssuePage({ goBack }) {
     description: '',
     impact: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,10 +18,51 @@ function OperationalIssuePage({ goBack }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Operational issue reported successfully! The relevant department has been notified.');
-    goBack();
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = userAPI.getCurrentUser();
+      if (!user) {
+        throw new Error('You must be logged in to report an issue');
+      }
+
+      // Map department to issue type
+      const departmentMap = {
+        'road-management': 'Roads',
+        'water-sewer': 'Water',
+        'electrical': 'Electricity',
+        'waste-management': 'Refuse',
+        'other': 'Roads'
+      };
+
+      const issueType = departmentMap[issue.department] || 'Roads';
+
+      const ticketPayload = {
+        subject: `Operational Issue: ${issue.department}`,
+        description: `Impact: ${issue.impact}\n\n${issue.description}`,
+        issue_type: issueType,
+        location: {
+          country: 'South Africa',
+          suburb: 'N/A'
+        }
+      };
+
+      const response = await ticketAPI.create(ticketPayload);
+      
+      if (response.success) {
+        alert('Operational issue reported successfully! The relevant department has been notified.');
+        goBack();
+      } else {
+        throw new Error(response.message || 'Failed to report issue');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to report operational issue. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -86,12 +130,18 @@ function OperationalIssuePage({ goBack }) {
             </div>
           </div>
 
+          {error && (
+            <div className="error-message" style={{color: '#ff8a8a', marginTop: '10px', textAlign: 'center'}}>
+              {error}
+            </div>
+          )}
+
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={goBack}>
+            <button type="button" className="cancel-btn" onClick={goBack} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className="primary-btn submit-btn">
-              Report Operational Issue
+            <button type="submit" className="primary-btn submit-btn" disabled={loading}>
+              {loading ? 'Submitting...' : 'Report Operational Issue'}
             </button>
           </div>
         </form>

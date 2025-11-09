@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 
 function DashboardPage({ setCurrentPage, bannerContent, commonIssues }) {
   const [currentBanner, setCurrentBanner] = useState(0);
+  const [tickets, setTickets] = useState([]);
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    window.location.href = '/';
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -18,6 +23,7 @@ function DashboardPage({ setCurrentPage, bannerContent, commonIssues }) {
           <h1>Welcome to Munici-PAL</h1>
           <p>Your community service delivery platform</p>
         </div>
+   
         <div className="welcome-graphic">
           <span className="welcome-icon">🏠</span>
         </div>

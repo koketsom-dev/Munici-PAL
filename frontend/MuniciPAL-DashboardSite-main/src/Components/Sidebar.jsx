@@ -3,11 +3,11 @@ import { Link, useLocation } from "react-router-dom";
 import MunicipalIcon from "../assets/municiPAL.svg?react";
 
 const NAV = [
-  { to: "/", label: "Dashboard", icon: "🏠" },
-  { to: "/tickets", label: "Tickets", icon: "🎟️" },
-  { to: "/reports", label: "Reports", icon: "📊" },
-  { to: "/admin", label: "Administration", icon: "👥" },
-  { to: "/user-admin", label: "User Administration", icon: "👤" },
+  { to: "/dashboard", label: "Dashboard", icon: "🏠" },
+  { to: "/dashboard/tickets", label: "Tickets", icon: "🎟️" },
+  { to: "/dashboard/reports", label: "Reports", icon: "📊" },
+  { to: "/dashboard/admin", label: "Administration", icon: "👥" },
+  { to: "/dashboard/user-admin", label: "User Administration", icon: "👤" },
 
 ];
 

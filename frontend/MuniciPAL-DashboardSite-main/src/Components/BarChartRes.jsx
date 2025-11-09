@@ -26,7 +26,7 @@ export default function ResolvedTimeChart({ Tickets }) {
 
     const typeDuration = {};
     Tickets.forEach((ticket) => {
-        if (!ticket.status === "Resolved" || !ticket.ResolvedAt) {
+        if (ticket.status !== "Resolved" || !ticket.ResolvedAt) {
             return;
         }
 
@@ -41,7 +41,7 @@ export default function ResolvedTimeChart({ Tickets }) {
     const avgDurations = Object.fromEntries(
         Object.entries(typeDuration).map(([type, durations]) => [
             type,
-            durations.reduce((a, b) => a + b, 0) / durations.length,
+            durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
         ])
     );
 

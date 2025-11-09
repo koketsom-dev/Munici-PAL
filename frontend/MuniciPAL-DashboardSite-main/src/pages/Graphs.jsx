@@ -1,62 +1,85 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import Sidebar from "../Components/Sidebar";
 import ReportGraphHeader from "../Components/ReportGraphHeader";
 import PieChart from "../Components/PieChart";
 import BarChartRes from "../Components/BarChartRes";
 import WeeklyBarChart from "../Components/WeeklyBarChart";
+import { ticketAPI } from "../../../src/services/api";
 
 export default function Graphs({ backTo }) {
     const navigate = useNavigate();
+    const [allTickets, setAllTickets] = useState([]);
+    const [loading, setLoading] = useState(true);
 
-    //Dummy data
-    const ALL_TICKETS = [
-        // Week of Oct 20–26
-        { id: 1, title: "Fix login bug", status: "Pending", type: "Water", createdAt: "2025-10-21", ResolvedAt: "", owner: "Sam" },
-        { id: 2, title: "Update docs", status: "In Progress", type: "Road", createdAt: "2025-10-22", ResolvedAt: "", owner: "Alex" },
-        { id: 3, title: "Add dark mode", status: "Resolved", type: "Electrical", createdAt: "2025-10-23", ResolvedAt: "2025-10-25", owner: "Mik" },
-        { id: 4, title: "Refactor API", status: "Resolved", type: "Refuse", createdAt: "2025-10-24", ResolvedAt: "2025-10-26", owner: "Jayden" },
+    useEffect(() => {
+        fetchTickets();
+    }, []);
 
-        // Week of Oct 27–Nov 2
-        { id: 5, title: "Improve search", status: "Resolved", type: "Road", createdAt: "2025-10-28", ResolvedAt: "2025-10-30", owner: "Sam" },
-        { id: 6, title: "Fix CSS issues", status: "Pending", type: "Water", createdAt: "2025-10-29", ResolvedAt: "", owner: "Alex" },
-        { id: 7, title: "Add notifications", status: "Resolved", type: "Electrical", createdAt: "2025-10-30", ResolvedAt: "2025-11-01", owner: "Mik" },
-        { id: 8, title: "Optimize DB", status: "Resolved", type: "Refuse", createdAt: "2025-10-31", ResolvedAt: "2025-11-02", owner: "Jayden" },
-        { id: 9, title: "Fix mobile layout", status: "In Progress", type: "Road", createdAt: "2025-11-01", ResolvedAt: "", owner: "Sam" },
+    const fetchTickets = async () => {
+        try {
+            setLoading(true);
+            const response = await ticketAPI.list({});
+            
+            if (response.success && response.data) {
+                const formattedTickets = response.data.map(ticket => ({
+                    id: ticket.id || ticket.ticket_id,
+                    title: ticket.title || ticket.subject || 'Untitled Ticket',
+                    status: ticket.status || 'Pending',
+                    type: ticket.issue_type || 'N/A',
+                    createdAt: ticket.createdAt || ticket.date_created || '',
+                    ResolvedAt: ticket.completedAt || ticket.date_completed || '',
+                    owner: ticket.assignedTo || 'Unassigned'
+                }));
+                setAllTickets(formattedTickets);
+            } else {
+                setAllTickets([]);
+            }
+        } catch (err) {
+            console.error('Failed to fetch tickets:', err);
+            setAllTickets([]);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-        // Week of Nov 3–Nov 9 (current week, won’t show in chart yet)
-        { id: 10, title: "Add analytics", status: "Resolved", type: "Water", createdAt: "2025-11-03", ResolvedAt: "2025-11-05", owner: "Alex" },
-        { id: 11, title: "Update dependencies", status: "Resolved", type: "Electrical", createdAt: "2025-11-04", ResolvedAt: "2025-11-06", owner: "Mik" },
-        { id: 12, title: "Fix caching bug", status: "Pending", type: "Refuse", createdAt: "2025-11-05", ResolvedAt: "", owner: "Jayden" },
-        { id: 13, title: "Improve logging", status: "Resolved", type: "Road", createdAt: "2025-11-06", ResolvedAt: "2025-11-08", owner: "Sam" },
-        { id: 14, title: "Add user roles", status: "Resolved", type: "Water", createdAt: "2025-11-07", ResolvedAt: "2025-11-09", owner: "Alex" },
-        { id: 15, title: "Fix email alerts", status: "In Progress", type: "Electrical", createdAt: "2025-11-08", ResolvedAt: "", owner: "Mik" },
-        { id: 16, title: "Enhance dashboard", status: "Resolved", type: "Refuse", createdAt: "2025-11-09", ResolvedAt: "2025-11-11", owner: "Jayden" },
-    ];
-
+    if (loading) {
+        return (
+            <div className="flex h-screen">
+                <Sidebar />
+                <div className="flex-1 flex flex-col bg-gray-50">
+                    <ReportGraphHeader />
+                    <main className="flex-1 overflow-y-auto space-y-4 px-6 pt-5 flex items-center justify-center">
+                        <p className="text-gray-500">Loading graphs...</p>
+                    </main>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen">
             <Sidebar />
-            <div className="flex-1 flex flex-col bg-gray-50 pb-6">
+            <div className="flex-1 flex flex-col bg-gray-50">
                 <ReportGraphHeader />
 
-                <main className="space-y-4 px-6 pt-5">
+                <main className="flex-1 overflow-y-auto space-y-4 px-6 pt-5">
                     <button
                         className="mt-4 bg-blue-600 text-white px-4 py-2 rounded "
-                        onClick={() => navigate(backTo = "/reports")}
+                        onClick={() => navigate("/dashboard/reports")}
                     >
                         ← Back to Reports
                     </button>
 
                     <div className="grid grid-cols-3 gap-6 mt-6">
                         <div className="bg-white p-4 rounded shadow">
-                            <PieChart tasks={ALL_TICKETS} />
+                            <PieChart tasks={allTickets} />
                         </div>
                         <div className="bg-white p-4 rounded shadow">
-                            <BarChartRes Tickets={ALL_TICKETS} />
+                            <BarChartRes Tickets={allTickets} />
                         </div>
                         <div className="bg-white p-4 rounded shadow">
-                            <WeeklyBarChart Tickets={ALL_TICKETS} />
+                            <WeeklyBarChart Tickets={allTickets} />
                         </div>
                     </div>
                 </main>

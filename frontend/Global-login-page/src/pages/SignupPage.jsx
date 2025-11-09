@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
 import TermsModal from '../components/TermsModal';
+import { authAPI } from '../../../src/services/api';
 
 export default function SignupPage(props) {
   const { mode, onSignupComplete } = props;
@@ -12,6 +13,8 @@ export default function SignupPage(props) {
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
+  const [gender, setGender] = useState('Other');
+  const [language, setLanguage] = useState('English');
 
   function validatePassword(pw) {
     // At least 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
@@ -37,6 +40,14 @@ export default function SignupPage(props) {
       setError('Please agree to the terms and conditions.');
       return;
     }
+    if (!gender) {
+      setError('Please select your gender.');
+      return;
+    }
+    if (!language) {
+      setError('Please select your preferred language.');
+      return;
+    }
 
     setLoading(true);
     setError('');
@@ -50,8 +61,8 @@ export default function SignupPage(props) {
         user_type: mode, // 'employee' or 'community' from props
         municipality_id: 1, // Default municipality
         province: 'Gauteng', // Default province
-        gender: 'Other', // Default gender
-        home_language: 'English' // Default language
+        gender: gender,
+        home_language: language
       };
 
       // Add employee-specific field if needed
@@ -60,23 +71,11 @@ export default function SignupPage(props) {
         signupData.access_level = 'Employee'; // Default access level
       }
 
-      const response = await fetch('http://localhost:8000/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(signupData)
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Registration failed');
-      }
+      const response = await authAPI.register(signupData);
 
       // Registration successful
       if (onSignupComplete) {
-        onSignupComplete(data.data);
+        onSignupComplete(response.data);
       }
 
     } catch (err) {
@@ -95,18 +94,16 @@ export default function SignupPage(props) {
             <p className="sub">Please choose a username and password</p>
           </div>
           <div className="fields">
-            <label className="input-label">Username / Email</label>
+            <label className="input-label">Username / Email <FaUser className="icon" /></label>
             <div className="input-row">
-              <FaUser className="icon" />
               <input 
                 value={username} 
                 onChange={e => setUsername(e.target.value)} 
                 placeholder="Username or email" 
               />
             </div>
-            <label className="input-label">Password</label>
+            <label className="input-label">Password <FaLock className="icon" /></label>
             <div className="input-row">
-              <FaLock className="icon" />
               <input 
                 type="password" 
                 value={password} 
@@ -114,15 +111,41 @@ export default function SignupPage(props) {
                 placeholder="Password" 
               />
             </div>
-            <label className="input-label">Confirm password</label>
+            <label className="input-label">Confirm password <FaLock className="icon" /></label>
             <div className="input-row">
-              <FaLock className="icon" />
               <input 
                 type="password" 
                 value={confirmPassword} 
                 onChange={e => setConfirmPassword(e.target.value)} 
                 placeholder="Confirm password" 
               />
+            </div>
+
+            <label className="input-label">Gender <FaUser className="icon" /></label>
+            <div className="input-row">
+              <select value={gender} onChange={e => setGender(e.target.value)}>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+
+            <label className="input-label">Preferred language <FaUser className="icon" /></label>
+            <div className="input-row">
+              <select value={language} onChange={e => setLanguage(e.target.value)}>
+                <option value="Afrikaans">Afrikaans</option>
+                <option value="English">English</option>
+                <option value="isiNdebele">IsiNdebele</option>
+                <option value="Sepedi">Sepedi (Northern Sotho)</option>
+                <option value="Sesotho">Sesotho (Southern Sotho)</option>
+                <option value="siSwati">SiSwati</option>
+                <option value="Xitsonga">Xitsonga</option>
+                <option value="Setswana">Setswana</option>
+                <option value="Tshivenda">Tshivenda</option>
+                <option value="isiXhosa">IsiXhosa</option>
+                <option value="isiZulu">IsiZulu</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
             
             {error && <div className="error">{error}</div>}

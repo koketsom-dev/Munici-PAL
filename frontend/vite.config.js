@@ -1,25 +1,35 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import svgr from 'vite-plugin-svgr'
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), svgr()],
   server: {
     port: 5173,
+    host: '0.0.0.0',
     proxy: {
-      '/': {
-        target: 'http://localhost:5174',
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, '')
+      },
+      '/login': {
+        target: 'http://localhost:8000',
+        changeOrigin: true
+      },
+      '/ticket': {
+        target: 'http://localhost:8000',
         changeOrigin: true
       },
       '/admin': {
-        target: 'http://localhost:5175',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/admin/, '')
-      },
-      '/dashboard': {
-        target: 'http://localhost:5176',
-        changeOrigin: true,
-        rewrite: path => path.replace(/^\/dashboard/, '')
+        target: 'http://localhost:8000',
+        changeOrigin: true
       }
+    }
+  },
+  resolve: {
+    alias: {
+      '@': '/src'
     }
   }
 })

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ticketAPI, userAPI } from '../../src/services/api';
 
 function TechnicalIssuePage({ goBack }) {
   const [issue, setIssue] = useState({
@@ -6,6 +7,8 @@ function TechnicalIssuePage({ goBack }) {
     description: '',
     urgency: 'medium'
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -15,10 +18,40 @@ function TechnicalIssuePage({ goBack }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Technical issue reported successfully! Our team will contact you soon.');
-    goBack();
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = userAPI.getCurrentUser();
+      if (!user) {
+        throw new Error('You must be logged in to report an issue');
+      }
+
+      const ticketPayload = {
+        subject: `Technical Issue: ${issue.type}`,
+        description: `Urgency: ${issue.urgency}\n\n${issue.description}`,
+        issue_type: 'Other', // Technical issues are "Other" type
+        location: {
+          country: 'South Africa',
+          suburb: 'N/A'
+        }
+      };
+
+      const response = await ticketAPI.create(ticketPayload);
+      
+      if (response.success) {
+        alert('Technical issue reported successfully! Our team will contact you soon.');
+        goBack();
+      } else {
+        throw new Error(response.message || 'Failed to report issue');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to report technical issue. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -84,12 +117,18 @@ function TechnicalIssuePage({ goBack }) {
             </div>
           </div>
 
+          {error && (
+            <div className="error-message" style={{color: '#ff8a8a', marginTop: '10px', textAlign: 'center'}}>
+              {error}
+            </div>
+          )}
+
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={goBack}>
+            <button type="button" className="cancel-btn" onClick={goBack} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className="primary-btn submit-btn">
-              Report Technical Issue
+            <button type="submit" className="primary-btn submit-btn" disabled={loading}>
+              {loading ? 'Submitting...' : 'Report Technical Issue'}
             </button>
           </div>
         </form>

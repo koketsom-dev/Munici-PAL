@@ -107,6 +107,17 @@ CREATE TABLE Tickets (
     last_action_date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
  
+-- TICKET NOTIFICATIONS
+CREATE TABLE TicketNotifications (
+    notification_id SERIAL PRIMARY KEY,
+    ticket_id INT REFERENCES Tickets(ticket_id) ON DELETE CASCADE,
+    user_id INT REFERENCES CommunityUser(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    read_at TIMESTAMP
+);
+ 
 -- TICKET MEDIA
 CREATE TABLE TicketMedia (
     media_id SERIAL PRIMARY KEY,
@@ -131,8 +142,22 @@ CREATE TABLE ChatMessages (
     message_id SERIAL PRIMARY KEY,
     parent_message_id INT REFERENCES ChatMessages(message_id),
     room_id INT REFERENCES Room(room_id),
-    user_id INT REFERENCES CommunityUser(id),
+    user_id INT,
     message_subject VARCHAR(50),
     message_description VARCHAR(255),
+    ticket_id INT REFERENCES Tickets(ticket_id),
+    is_private BOOLEAN DEFAULT FALSE,
     message_sent_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- LEAVE CALENDAR
+CREATE TABLE LeaveCalendar (
+    leave_id SERIAL PRIMARY KEY,
+    employee_id INT REFERENCES Employee(id),
+    leave_type VARCHAR(50),
+    start_date DATE,
+    end_date DATE,
+    checking_in BOOLEAN DEFAULT TRUE,
+    stand_in_email VARCHAR(100),
+    date_added TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

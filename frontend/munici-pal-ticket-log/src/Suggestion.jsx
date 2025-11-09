@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { ticketAPI, userAPI } from '../../src/services/api';
 
 function SuggestionPage({ goBack }) {
   const [suggestion, setSuggestion] = useState({
@@ -7,6 +8,8 @@ function SuggestionPage({ goBack }) {
     description: '',
     benefits: ''
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -16,10 +19,40 @@ function SuggestionPage({ goBack }) {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Thank you for your suggestion! Our team will review it.');
-    goBack();
+    setLoading(true);
+    setError('');
+
+    try {
+      const user = userAPI.getCurrentUser();
+      if (!user) {
+        throw new Error('You must be logged in to submit a suggestion');
+      }
+
+      const ticketPayload = {
+        subject: `Suggestion: ${suggestion.title}`,
+        description: `Category: ${suggestion.category}\n\n${suggestion.description}\n\nExpected Benefits:\n${suggestion.benefits || 'N/A'}`,
+        issue_type: 'Other', // Suggestions are "Other" type
+        location: {
+          country: 'South Africa',
+          suburb: 'N/A'
+        }
+      };
+
+      const response = await ticketAPI.create(ticketPayload);
+      
+      if (response.success) {
+        alert('Thank you for your suggestion! Our team will review it.');
+        goBack();
+      } else {
+        throw new Error(response.message || 'Failed to submit suggestion');
+      }
+    } catch (err) {
+      setError(err.message || 'Failed to submit suggestion. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -96,12 +129,18 @@ function SuggestionPage({ goBack }) {
             </div>
           </div>
 
+          {error && (
+            <div className="error-message" style={{color: '#ff8a8a', marginTop: '10px', textAlign: 'center'}}>
+              {error}
+            </div>
+          )}
+
           <div className="form-actions">
-            <button type="button" className="cancel-btn" onClick={goBack}>
+            <button type="button" className="cancel-btn" onClick={goBack} disabled={loading}>
               Cancel
             </button>
-            <button type="submit" className="primary-btn submit-btn">
-              Submit Suggestion
+            <button type="submit" className="primary-btn submit-btn" disabled={loading}>
+              {loading ? 'Submitting...' : 'Submit Suggestion'}
             </button>
           </div>
         </form>

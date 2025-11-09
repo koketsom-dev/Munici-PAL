@@ -31,8 +31,11 @@ class Response {
         self::error($message, 401);
     }
 
+    public static function forbidden($message = "Forbidden") {
+        self::error($message, 403);
+    }
+
     public static function serverError($message = "Internal server error") {
         self::error($message, 500);
     }
 }
-?>

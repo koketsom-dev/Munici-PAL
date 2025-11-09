@@ -44,7 +44,7 @@ export default function WeeklyStatusChart({ Tickets }) {
         return created >= lastWeekMonday && created <= prevWeekSunday;
     });
 
-    const types = ['Water', 'Road', 'Electrical', 'Refuse'];
+    const types = ['Water', 'Roads', 'Electricity', 'Refuse'];
     const statuses = ['Pending', 'In Progress', 'Resolved'];
     const colors = {
         Pending: '#f44336',

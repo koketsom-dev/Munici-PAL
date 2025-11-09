@@ -2,60 +2,157 @@ import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "../Components/Sidebar";
 import DetailHeader from "../Components/DetailHeader";
 import ChatForum from "../Components/ChatForum";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Switch } from "@headlessui/react";
+import { ticketAPI, userAPI, forumAPI } from "../../../src/services/api";
 
 function DetailedTickets() {
     const { id } = useParams();
-
-    // Mock ticket data
-    const ticket = {
-        id,
-        title: "Fix login bug",
-        status: "Pending",
-        location: "Edenvale",
-        description: "Users are unable to log in with correct credentials.",
-        createdAt: "2024-10-01",
-        assignedTo: "Jayden",
-    };
+    const [ticket, setTicket] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
 
     const [isPrivate, setIsPrivate] = useState(false);
 
-    //mock messages
-    const [chatMessages, setChatMessages] = useState([
-        { id: 1, user: 'Citizen', message: 'Hello, I need help with my order.', timestamp: '10:05 AM' },
-        { id: 2, user: 'You', message: 'Sure, can you provide your order ID?', timestamp: '10:00 AM' },
+    useEffect(() => {
+        fetchTicket();
+    }, [id]);
 
-    ]);
+    useEffect(() => {
+        fetchMessages();
+    }, [id, isPrivate]);
 
-    const [privateMessages, setPrivateMessages] = useState([
-        { id: 1, user: 'Employee', message: 'This is a private note regarding the ticket.', timestamp: '10:10 AM' },
-    ]);
+    const fetchTicket = async () => {
+        try {
+            setLoading(true);
+            const response = await ticketAPI.getById(id);
+            
+            if (response.success && response.data) {
+                const ticketData = response.data;
+                const location = ticketData.location;
+                const locationStr = location 
+                    ? (typeof location === 'string' 
+                        ? location 
+                        : `${location.suburb || ''} ${location.street_name || ''}`.trim() || 'N/A')
+                    : 'N/A';
+                
+                setTicket({
+                    id: ticketData.id || ticketData.ticket_id,
+                    title: ticketData.title || ticketData.subject || 'Untitled Ticket',
+                    status: ticketData.status || 'Pending',
+                    location: locationStr,
+                    description: ticketData.description || '',
+                    createdAt: ticketData.createdAt || ticketData.date_created || ticketData.created_at 
+                        ? new Date(ticketData.createdAt || ticketData.date_created || ticketData.created_at).toISOString().split('T')[0] 
+                        : new Date().toISOString().split('T')[0],
+                    assignedTo: ticketData.assignedTo || ticketData.assigned_to || 'Unassigned',
+                    issue_type: ticketData.issue_type,
+                    resolved_at: ticketData.completedAt || ticketData.date_completed || ticketData.resolved_at
+                });
+            } else {
+                setError('Ticket not found');
+            }
+        } catch (err) {
+            setError(err.message || 'Failed to load ticket');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const [chatMessages, setChatMessages] = useState([]);
+    const [privateMessages, setPrivateMessages] = useState([]);
+    const [messagesLoading, setMessagesLoading] = useState(false);
 
     const [newMessage, setNewMessage] = useState('');
 
-    const handleSendMessage = () => {
-        if (newMessage.trim() !== '') {
-            const newChatMessage = {
-                id: Date.now(),
-                user: 'You',
-                message: newMessage,
-                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            };
+    const fetchMessages = async () => {
+        try {
+            setMessagesLoading(true);
+            const user = userAPI.getCurrentUser();
+            const currentUserId = user ? user.id || user.user_id : null;
 
-            if (isPrivate) {
-                setPrivateMessages([...privateMessages, newChatMessage]);
-            } else {
-                setChatMessages([...chatMessages, newChatMessage]);
+            const citizenResponse = await forumAPI.getMessages(50, 0, 1, id, false);
+            const privateResponse = await forumAPI.getMessages(50, 0, 1, id, true);
+
+            if (citizenResponse.success) {
+                const formattedCitizenMessages = citizenResponse.data.messages.map(msg => ({
+                    id: msg.message_id,
+                    user: msg.user_id === currentUserId ? 'You' : (msg.user_name || 'Unknown User'),
+                    message: msg.message_description,
+                    timestamp: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }));
+                setChatMessages(formattedCitizenMessages);
             }
-            setNewMessage('');
+
+            if (privateResponse.success) {
+                const formattedPrivateMessages = privateResponse.data.messages.map(msg => ({
+                    id: msg.message_id,
+                    user: msg.user_id === currentUserId ? 'You' : (msg.user_name || 'Unknown User'),
+                    message: msg.message_description,
+                    timestamp: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                }));
+                setPrivateMessages(formattedPrivateMessages);
+            }
+        } catch (err) {
+            console.error('Failed to fetch messages:', err);
+        } finally {
+            setMessagesLoading(false);
         }
     };
+
+    const handleSendMessage = async () => {
+        if (newMessage.trim() !== '') {
+            try {
+                setNewMessage('');
+
+                // Send to backend
+                const currentUser = userAPI.getCurrentUser();
+                const userId = currentUser ? currentUser.id || currentUser.user_id : null;
+                await forumAPI.addMessage('Chat', newMessage, userId, id, isPrivate);
+
+                // Refresh messages to show the new message
+                fetchMessages();
+            } catch (err) {
+                console.error('Failed to send message:', err);
+                alert('Failed to send message. Please try again.');
+                // Restore the message on error
+                setNewMessage(newMessage);
+            }
+        }
+    };
+
+    if (loading) {
+        return (
+            <div className="flex h-screen">
+                <Sidebar />
+                <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6">
+                    <DetailHeader backTo={"/tickets"} />
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-gray-500">Loading ticket...</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
+
+    if (error || !ticket) {
+        return (
+            <div className="flex h-screen">
+                <Sidebar />
+                <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6">
+                    <DetailHeader backTo={"/tickets"} />
+                    <div className="flex-1 flex items-center justify-center">
+                        <p className="text-red-500">{error || 'Ticket not found'}</p>
+                    </div>
+                </main>
+            </div>
+        );
+    }
 
     return (
         <div className="flex h-screen">
             <Sidebar />
-            <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6">
+            <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6 bg-gray-50">
                 <DetailHeader backTo={"/tickets"} />
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     <div className="bg-white p-6 rounded-lg shadow">
@@ -68,8 +165,12 @@ function DetailedTickets() {
                         </div>
 
                         <p><span className="font-semibold">Title:</span> {ticket.title}</p>
+                        <p><span className="font-semibold">Category:</span> {ticket.issue_type || 'N/A'}</p>
                         <p><span className="font-semibold">Location:</span> {ticket.location}</p>
                         <p><span className="font-semibold">Created At:</span> {ticket.createdAt}</p>
+                        {ticket.resolved_at && (
+                            <p><span className="font-semibold">Resolved At:</span> {new Date(ticket.resolved_at).toISOString().split('T')[0]}</p>
+                        )}
                         <p><span className="font-semibold">Description:</span> {ticket.description}</p>
 
                     </div>

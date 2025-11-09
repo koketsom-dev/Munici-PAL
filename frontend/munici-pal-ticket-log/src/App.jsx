@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 import DashboardPage from './DashboardPage';
 import CreateTicketPage from './CreateTicket';
@@ -12,42 +13,108 @@ import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
 import AboutPage from './AboutPage';
 import logo from './municiPAL.svg';
+import { forumAPI, notificationAPI, authAPI } from '../../src/services/api';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: 'Your ticket #TKT-001 has been resolved', read: false },
-    { id: 2, text: 'New message in community chat', read: false },
-    { id: 3, text: 'Water outage reported in your area', read: true }
-  ]);
-  const [chatMessages, setChatMessages] = useState([
-    { id: 1, user: 'Sarah K', message: 'Has anyone reported the pothole on Main St?', time: '10:30 AM' },
-    { id: 2, user: 'John M', message: 'Yes, I reported it yesterday. Status is "In Progress"', time: '10:45 AM' },
-    { id: 3, user: 'Municipal Worker', message: 'We\'ve scheduled repairs for tomorrow morning', time: '11:00 AM' }
-  ]);
+  const [notifications, setNotifications] = useState([]);
+  const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
+  const [chatLoading, setChatLoading] = useState(false);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+
+    const fetchNotifications = async () => {
+      try {
+        const response = await notificationAPI.list();
+        if (response.success && Array.isArray(response.data) && active) {
+          const formatted = response.data.map((notification) => ({
+            id: notification.id,
+            text: notification.message,
+            ticketId: notification.ticket_id,
+            subject: notification.ticket_subject,
+            createdAt: notification.created_at
+          }));
+          setNotifications(formatted);
+        }
+      } catch (error) {
+        console.error('Failed to load notifications:', error);
+        // Don't throw error, just log it to prevent app crash
+      }
+    };
+
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 10000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (currentPage === 'chat-forum') {
+      fetchMessages();
+    }
+  }, [currentPage]);
+
+  const fetchMessages = async () => {
+    try {
+      setChatLoading(true);
+      const response = await forumAPI.getMessages(50, 0);
+      if (response.success && response.data.messages) {
+        const formattedMessages = response.data.messages.map(msg => ({
+          id: msg.message_id,
+          user: `${msg.first_name} ${msg.last_name}` || 'User',
+          message: msg.message_description,
+          time: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        }));
+        setChatMessages(formattedMessages);
+      }
+    } catch (error) {
+      console.error('Failed to fetch messages:', error);
+    } finally {
+      setChatLoading(false);
+    }
+  };
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const markNotificationAsRead = (id) => {
-    setNotifications(notifications.map(notification => 
-      notification.id === id ? {...notification, read: true} : notification
-    ));
+  const markNotificationAsRead = async (id) => {
+    try {
+      await notificationAPI.markRead([id]);
+      setNotifications((prev) => prev.filter((notification) => notification.id !== id));
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== '') {
-      const newChatMessage = {
-        id: chatMessages.length + 1,
-        user: 'You',
-        message: newMessage,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-      setChatMessages([...chatMessages, newChatMessage]);
-      setNewMessage('');
+  const handleSendMessage = async () => {
+    if (newMessage.trim() === '') return;
+
+    const messageText = newMessage;
+    setNewMessage('');
+
+    try {
+      const response = await forumAPI.addMessage('General', messageText);
+      if (response.success) {
+        const msg = response.data;
+        const newChatMessage = {
+          id: msg.message_id,
+          user: `${msg.first_name} ${msg.last_name}` || 'You',
+          message: msg.message_description,
+          time: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        };
+        setChatMessages([...chatMessages, newChatMessage]);
+      }
+    } catch (error) {
+      console.error('Failed to send message:', error);
+      setNewMessage(messageText);
     }
   };
 
@@ -64,7 +131,23 @@ function App() {
     { id: 9, name: 'Logout', icon: '🚪', isLogout: true }
   ];
 
-  const handleMenuClick = (itemName) => {
+  const handleLogout = async () => {
+    try {
+      await authAPI.logout();
+    } catch (error) {
+      console.error('Failed to logout:', error);
+    } finally {
+      setCurrentPage('dashboard');
+      setIsMenuOpen(false);
+      setChatMessages([]);
+      setNotifications([]);
+      setNewMessage('');
+      setChatLoading(false);
+      navigate('/', { replace: true });
+    }
+  };
+
+  const handleMenuClick = async (itemName) => {
     console.log(`Clicked: ${itemName}`);
     setIsMenuOpen(false);
 
@@ -91,13 +174,11 @@ function App() {
         setCurrentPage('help');
         break;
       case 'About':
-      setCurrentPage('about');
-      break;
-      case 'Logout':
-        // This is where we would add logout logic
-        console.log('Logging out');
-        setCurrentPage('dashboard');
+        setCurrentPage('about');
         break;
+      case 'Logout':
+        await handleLogout();
+        return;
       default:
         break;
     }
@@ -105,7 +186,7 @@ function App() {
 
   // Rotating banner content
   const bannerContent = [
-    "Report issues faster with Munich-PAL",
+    "Report issues faster with Munici-PAL",
     "Track your ticket status in real-time",
     "Join your community chat forum"
   ];
@@ -158,6 +239,7 @@ function App() {
           setNewMessage={setNewMessage}
           handleSendMessage={handleSendMessage}
           goBack={() => setCurrentPage('dashboard')}
+          loading={chatLoading}
         />;
         case 'my-profile':
         return <MyProfilePage goBack={() => setCurrentPage('dashboard')} />;
@@ -199,9 +281,9 @@ function App() {
           <div className="notifications">
             <button className="notification-btn">
               <span className="notification-icon">🔔</span>
-              {notifications.filter(n => !n.read).length > 0 && (
+              {notifications.length > 0 && (
                 <span className="notification-badge">
-                  {notifications.filter(n => !n.read).length}
+                  {notifications.length}
                 </span>
               )}
             </button>
@@ -215,7 +297,7 @@ function App() {
                 notifications.map(notification => (
                   <div 
                     key={notification.id} 
-                    className={`notification-item ${notification.read ? 'read' : 'unread'}`}
+                    className="notification-item unread"
                     onClick={() => markNotificationAsRead(notification.id)}
                   >
                     {notification.text}

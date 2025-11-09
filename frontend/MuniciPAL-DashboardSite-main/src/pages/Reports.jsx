@@ -1,22 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import Sidebar from "../Components/Sidebar";
 import ReportHeader from "../Components/ReportHeader";
-import ReportTable from "../Components/ReportTable"; // NEW table component
-
-
-
-// Mock data. Replace with API data later.
-const ALL_TICKETS = [
-  { id: 1, title: "Fix login bug", status: "Pending", type: "Bug", createdAt: "2025-01-03", ResolvedAt: "2025-01-04", owner: "Sam" },
-  { id: 2, title: "Update docs",   status: "In Progress", type: "Task", createdAt: "2025-02-10", ResolvedAt: "2025-02-14", owner: "Alex" },
-  { id: 3, title: "Add dark mode", status: "Resolved", type: "Feature", createdAt: "2025-02-16", ResolvedAt: "2025-02-18", owner: "Mik" },
-];
+import ReportTable from "../Components/ReportTable";
+import { ticketAPI } from "../../../src/services/api";
 
 const STATUS = ["Pending", "In Progress", "Resolved"];
-const TYPES  = ["Bug", "Task", "Feature"];
+const TYPES  = ["Electricity", "Water", "Roads", "Refuse"];
 
 export default function Reports() {
+  const [allTickets, setAllTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     q: "",
     status: "",
@@ -28,10 +22,40 @@ export default function Reports() {
 
   const navigate = useNavigate();
 
-  // Filter logic (runs on every change)
+  useEffect(() => {
+    fetchTickets();
+  }, []);
+
+  const fetchTickets = async () => {
+    try {
+      setLoading(true);
+      const response = await ticketAPI.list({});
+      
+      if (response.success && response.data) {
+        const formattedTickets = response.data.map(ticket => ({
+          id: ticket.id || ticket.ticket_id,
+          title: ticket.title || ticket.subject || 'Untitled Ticket',
+          status: ticket.status || 'Pending',
+          type: ticket.issue_type || 'N/A',
+          createdAt: ticket.createdAt || ticket.date_created || new Date().toISOString().split('T')[0],
+          ResolvedAt: ticket.completedAt || ticket.date_completed || ticket.resolved_at || '',
+          owner: ticket.assignedTo || 'Unassigned'
+        }));
+        setAllTickets(formattedTickets);
+      } else {
+        setAllTickets([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch tickets:', err);
+      setAllTickets([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const rows = useMemo(() => {
     const { q, status, type, from, to, owner } = filters;
-    return ALL_TICKETS.filter((t) => {
+    return allTickets.filter((t) => {
       const matchesQ =
         !q ||
         t.title.toLowerCase().includes(q.toLowerCase()) ||
@@ -44,7 +68,7 @@ export default function Reports() {
       const beforeTo  = !to   || created <= new Date(to);
       return matchesQ && matchesStatus && matchesType && matchesOwner && afterFrom && beforeTo;
     });
-  }, [filters]);
+  }, [filters, allTickets]);
 
   // Export CSV
   function exportCSV() {
@@ -66,13 +90,27 @@ export default function Reports() {
 
   const openCount = rows.filter(r => r.status !== "Resolved").length;
 
+  if (loading) {
+    return (
+      <div className="flex h-screen">
+        <Sidebar />
+        <div className="flex-1 flex flex-col bg-gray-50">
+          <ReportHeader openCount={0} />
+          <main className="flex-1 overflow-y-auto p-6 flex items-center justify-center">
+            <p className="text-gray-500">Loading reports...</p>
+          </main>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-screen">
       <Sidebar />
       <div className="flex-1 flex flex-col bg-gray-50">
         <ReportHeader openCount={openCount} />
 
-        <main className="p-6 space-y-4">
+        <main className="flex-1 overflow-y-auto p-6 space-y-4">
 
           {/* Filters */}
           <div className="bg-white border rounded-lg p-4 grid grid-cols-1 md:grid-cols-5 gap-3">
@@ -136,7 +174,7 @@ export default function Reports() {
             </button>
             <button
               className="bg-blue-600 text-white px-3 py-1 rounded"
-              onClick={() => navigate("/graphs")}
+              onClick={() => navigate("/dashboard/graphs")}
             >
               Graphs
             </button>

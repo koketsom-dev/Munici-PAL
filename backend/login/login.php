@@ -19,7 +19,7 @@ if (empty($email) || empty($password) || empty($user_type)) {
 
 try {
     $database = new Database();
-    $db = $database->connect();
+    $db = $database->getConnection();
 
     // Authenticate based on user type
     if ($user_type === 'employee') {
@@ -32,25 +32,18 @@ try {
         Response::error("Invalid email or password", 401);
     }
 
-    // Generate JWT token
-    $token = JWT::generate([
-        'user_id' => $user['id'],
-        'user_type' => $user['user_type'],
-        'email' => $user['email'],
-        'municipality_id' => $user['municipality_id'],
-        'exp' => time() + (24 * 60 * 60) // 24 hours
-    ]);
-
     // Update last login
     updateLastLogin($db, $user['user_type'], $user['id']);
 
+    // Set session data using Auth::login
+    Auth::login($user);
+
     // Prepare response
     $responseData = [
-        'token' => $token,
         'user' => $user,
-        'redirect_to' => $user['user_type'] === 'employee' 
-            ? 'http://localhost:3000/dashboard' 
-            : 'http://localhost:3001/tickets'
+        'redirect_to' => $user['user_type'] === 'employee'
+            ? '/dashboard'
+            : '/community'
     ];
 
     Response::success($responseData, "Login successful");
@@ -155,4 +148,3 @@ function updateLastLogin($db, $userType, $userId) {
         error_log("Failed to update last login: " . $e->getMessage());
     }
 }
-?>

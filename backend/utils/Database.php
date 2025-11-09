@@ -23,9 +23,15 @@ class Database {
             );
             $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch(PDOException $e) {
-            echo "Connection error: " . $e->getMessage();
+            throw new Exception("Database connection failed: " . $e->getMessage());
+        }
+        return $this->conn;
+    }
+
+    public function getConnection() {
+        if ($this->conn === null) {
+            return $this->connect();
         }
         return $this->conn;
     }
 }
-?>

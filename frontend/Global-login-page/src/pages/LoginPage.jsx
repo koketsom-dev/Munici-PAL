@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
-import { authAPI } from '../services/api';
+import { authAPI } from '../../../src/services/api';
 
 export default function LoginPage(props) {
   const { mode, setMode } = props;
@@ -28,24 +28,28 @@ export default function LoginPage(props) {
     try {
       const response = await authAPI.login(email, password, mode);
       
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('user', JSON.stringify(response.data.user));
-      
-      // First navigate to loading screen
-      navigate('/loading', { replace: true });
-      
-      // Then after 2.5 seconds, redirect to the actual dashboard
-      setTimeout(() => {
-        // Redirect based on user type
-        if (response.data.user.user_type === 'employee') {
-          window.location.href = 'http://localhost:3000/dashboard';
-        } else {
-          window.location.href = 'http://localhost:3001/tickets';
+      if (response.success && response.data) {
+        localStorage.setItem('token', response.data.token);
+        localStorage.setItem('user', JSON.stringify(response.data.user));
+        
+        // First navigate to loading screen
+        navigate('/loading', { replace: true });
+        
+        // Then after 2.5 seconds, redirect to the actual dashboard
+        setTimeout(() => {
+          // Redirect based on user type using unified port
+          if (response.data.user.user_type === 'employee') {
+            navigate('/dashboard');
+          } else {
+            navigate('/community');
+          }
+        }, 2500); // Match the loading animation duration
+        
+        if (props.onLoginNavigate) {
+          props.onLoginNavigate(response.data.user);
         }
-      }, 2500); // Match the loading animation duration
-      
-      if (onLoginNavigate) {
-        onLoginNavigate(response.data.user);
+      } else {
+        throw new Error(response.message || 'Login failed');
       }
       
     } catch (err) {

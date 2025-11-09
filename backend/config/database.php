@@ -4,7 +4,7 @@ class Database {
     private $port = "5432";
     private $db_name = "municipal_main";
     private $username = "municipalAdmin";
-    private $password = "Single-Guide-Card-Helpful4-Whispered";
+    private $password = "Single-Guide-Card-Helpful";
     public $conn;
 
     public function getConnection() {

@@ -1,56 +1,59 @@
 <?php
 require_once '../bootstrap.php';
 
-header('Content-Type: text/plain');
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    Response::error("Method not allowed", 405);
+}
 
 try {
+    $input = json_decode(file_get_contents('php://input'), true);
+    $email = $input['email'] ?? '';
+
+    if (empty($email)) {
+        Response::error("Email is required");
+    }
+
     $database = new Database();
     $db = $database->connect();
 
-    echo "=== PASSWORD RESET TOOL ===\n\n";
+    $table = '';
+    $query = "SELECT id, email FROM employee WHERE email = :email AND is_active = true";
+    $stmt = $db->prepare($query);
+    $stmt->bindParam(':email', $email);
+    $stmt->execute();
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
-    // Generate fresh password hash for "password"
-    $newPasswordHash = password_hash('password', PASSWORD_DEFAULT);
-    
-    echo "Generated Hash: " . $newPasswordHash . "\n\n";
-
-    // Update employee password
-    $updateEmployee = $db->prepare("UPDATE employee SET password = :password WHERE email = 'admin@municipal.gov.za'");
-    $updateEmployee->bindParam(':password', $newPasswordHash);
-    $employeeUpdated = $updateEmployee->execute();
-    echo "Employee password updated: " . ($employeeUpdated ? "SUCCESS" : "FAILED") . "\n";
-
-    // Update community user password  
-    $updateCommunity = $db->prepare("UPDATE communityuser SET password = :password WHERE email = 'community@test.com'");
-    $updateCommunity->bindParam(':password', $newPasswordHash);
-    $communityUpdated = $updateCommunity->execute();
-    echo "Community user password updated: " . ($communityUpdated ? "SUCCESS" : "FAILED") . "\n";
-
-    // Verify the updates
-    echo "\n=== VERIFICATION ===\n";
-    $employee = $db->query("SELECT email, password FROM employee WHERE email = 'admin@municipal.gov.za'")->fetch(PDO::FETCH_ASSOC);
-    $community = $db->query("SELECT email, password FROM communityuser WHERE email = 'community@test.com'")->fetch(PDO::FETCH_ASSOC);
-
-    if ($employee) {
-        $employeeVerify = password_verify('password', $employee['password']);
-        echo "Employee: " . $employee['email'] . " - Verify: " . ($employeeVerify ? "SUCCESS" : "FAILED") . "\n";
+    if (!$user) {
+        $query = "SELECT id, email FROM communityuser WHERE email = :email AND is_banned = false";
+        $stmt = $db->prepare($query);
+        $stmt->bindParam(':email', $email);
+        $stmt->execute();
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        $table = 'communityuser';
     } else {
-        echo "Employee: NOT FOUND\n";
+        $table = 'employee';
     }
 
-    if ($community) {
-        $communityVerify = password_verify('password', $community['password']);
-        echo "Community: " . $community['email'] . " - Verify: " . ($communityVerify ? "SUCCESS" : "FAILED") . "\n";
-    } else {
-        echo "Community: NOT FOUND\n";
+    if (!$user) {
+        Response::error("Email not found", 404);
     }
 
-    echo "\n=== TEST INSTRUCTIONS ===\n";
-    echo "Use email: admin@municipal.gov.za\n";
-    echo "Use password: password\n";
-    echo "Test URL: http://localhost:3002\n";
+    $resetToken = bin2hex(random_bytes(32));
+    $tokenExpiry = date('Y-m-d H:i:s', time() + 3600);
+
+    $updateQuery = "UPDATE $table SET reset_token = :token, reset_token_expiry = :expiry WHERE id = :id";
+    $updateStmt = $db->prepare($updateQuery);
+    $updateStmt->bindParam(':token', $resetToken);
+    $updateStmt->bindParam(':expiry', $tokenExpiry);
+    $updateStmt->bindParam(':id', $user['id']);
+    $updateStmt->execute();
+
+    Response::success([
+        'message' => 'Password reset email sent',
+        'reset_token' => $resetToken
+    ], "Check your email for password reset instructions");
 
 } catch (Exception $e) {
-    echo "ERROR: " . $e->getMessage() . "\n";
+    error_log("Reset password error: " . $e->getMessage());
+    Response::error("Failed to process password reset: " . $e->getMessage());
 }
-?>

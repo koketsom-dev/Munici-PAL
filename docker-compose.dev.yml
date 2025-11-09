@@ -6,7 +6,7 @@ services:
     restart: always
     environment:
       POSTGRES_USER: municipalAdmin
-      POSTGRES_PASSWORD: Single-Guide-Card-Helpful4-Whispered
+      POSTGRES_PASSWORD: Single-Guide-Card-Helpful
       POSTGRES_DB: municipal_main
     ports:
       - "5432:5432"
@@ -29,62 +29,26 @@ services:
       DB_PORT: 5432
       DB_NAME: municipal_main
       DB_USER: municipalAdmin
-      DB_PASSWORD: Single-Guide-Card-Helpful4-Whispered
+      DB_PASSWORD: Single-Guide-Card-Helpful
     depends_on:
       - db
 
-  # === Global Login Page ===
-  global_login:
+  # === Unified Frontend ===
+  frontend:
     build:
-      context: ./frontend/Global-login-page
+      context: ./frontend
       dockerfile: Dockerfile.dev
-    container_name: munici-pal-global-login
+    container_name: munici-pal-frontend
     ports:
-      - "3002:3000"
+      - "5173:5173"
     volumes:
-      - ./frontend/Global-login-page:/app
+      - ./frontend:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
       - WATCHPACK_POLLING=true
       - FAST_REFRESH=true
-    stdin_open: true
-    tty: true
-    depends_on:
-      - backend
-
-  # === Employee Dashboard ===
-  dashboard:
-    build:
-      context: ./frontend/MuniciPAL-DashboardSite-main
-      dockerfile: Dockerfile.dev
-    container_name: munici-pal-dashboard
-    ports:
-      - "3000:5173"
-    volumes:
-      - ./frontend/MuniciPAL-DashboardSite-main:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
     command: npm run dev -- --host 0.0.0.0
-    depends_on:
-      - backend
-
-  # === Community Ticket Log ===
-  ticket_log:
-    build:
-      context: ./frontend/munici-pal-ticket-log
-      dockerfile: Dockerfile.dev
-    container_name: munici-pal-ticket-log
-    ports:
-      - "3001:3000"
-    volumes:
-      - ./frontend/munici-pal-ticket-log:/app
-      - /app/node_modules
-    environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - FAST_REFRESH=true
     stdin_open: true
     tty: true
     depends_on:

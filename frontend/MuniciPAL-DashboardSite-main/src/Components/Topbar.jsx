@@ -90,11 +90,11 @@ export default function Topbar({
             onClick={() => setDropdownOpen(!dropdownOpen)}
             className="bg-yellow-500 text-blue-900 font-bold w-8 h-8 rounded-full flex items-center justify-center hover:bg-yellow-400"
           >
-            M
+            {username?.[0]?.toUpperCase() || "M"}
           </button>
 
           {dropdownOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white text-black rounded-md shadow-lg z-20">
+            <div className="absolute right-0 top-full w-48 bg-white text-black rounded-md shadow-lg z-20">
               <ul className="py-2">
                 <li>
                   <button
