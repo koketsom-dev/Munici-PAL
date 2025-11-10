@@ -269,7 +269,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%x;
+  border-radius: 50%;
 }
 
 .close-menu:hover {
@@ -346,6 +346,7 @@ body {
   width: 100%;
 }
 
+/* Dashboard Styles */
 .dashboard {
   display: flex;
   flex-direction: column;
@@ -508,7 +509,7 @@ body {
 
 .category-card:hover {
   transform: translateY(-5px);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
 }
 
 .category-header {
@@ -542,6 +543,12 @@ body {
 
 .category-examples strong {
   color: var(--primary-color);
+}
+
+.category-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .chat-section {
@@ -593,6 +600,11 @@ body {
   font-size: 1.4rem;
 }
 
+.welcome-icon {
+  font-size: inherit;
+}
+
+/* Create Ticket Page */
 .create-ticket-page {
   padding-top: 20px;
 }
@@ -796,6 +808,7 @@ body {
   padding: 14px 30px;
 }
 
+/* Chat Forum Page */
 .chat-forum-page {
   display: flex;
   flex-direction: column;
@@ -959,6 +972,7 @@ body {
   font-style: italic;
 }
 
+/* Notification Dropdown */
 .notification-dropdown {
   right: 0;
   width: 350px;
@@ -1001,7 +1015,7 @@ body {
   }
 }
 
-/* Solution One: Centered buttons on mobile */
+/* Form Actions */
 @media (max-width: 767px) {
   .form-actions {
     flex-direction: column;
@@ -1017,6 +1031,7 @@ body {
   }
 }
 
+/* Mobile Responsive Styles */
 @media (max-width: 767px) {
   .header {
     padding: 12px 15px;
@@ -1151,7 +1166,6 @@ body {
     font-size: 1.3rem;
   }
 
-  /* small screen styles*/
   .form-group input,
   .form-group textarea,
   .form-group select {
@@ -1169,21 +1183,7 @@ body {
   }
 }
 
-.category-body {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.welcome-icon {
-  font-size: inherit;
-}
-
-.banner-icon {
-  font-size: inherit;
-}
-
-/*srollbar for the chat */
+/* Scrollbar for chat */
 .chat-container::-webkit-scrollbar {
   width: 6px;
 }
@@ -1198,6 +1198,7 @@ body {
   border-radius: 3px;
 }
 
+/* Focus styles */
 button:focus-visible,
 input:focus-visible,
 textarea:focus-visible,
@@ -1219,6 +1220,7 @@ select:focus-visible {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
 }
 
+/* FAQ Styles */
 .faq-list {
   display: flex;
   flex-direction: column;
@@ -1260,6 +1262,7 @@ select:focus-visible {
   border-top: 1px solid var(--border-color);
 }
 
+/* Ticket List Styles */
 .ticket-list {
   display: flex;
   flex-direction: column;
