@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 import { authAPI } from '../services/api';
 
 export default function LoginPage(props) {
@@ -9,6 +10,7 @@ export default function LoginPage(props) {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -71,7 +73,14 @@ export default function LoginPage(props) {
 
             <div className="row-between">
               <label className="small"><input type="checkbox" /> Keep me logged in</label>
-              <Link to="/forgot" className="forgot">Forgot password</Link>
+              <button
+                type="button"
+                className="forgot"
+                onClick={() => setShowForgot(true)}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+              >
+                Forgot password
+              </button>
             </div>
             
             <button type="submit" className="primary" disabled={loading}>
@@ -84,6 +93,7 @@ export default function LoginPage(props) {
           </div>
         </form>
       </div>
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
     </div>
   );
 }
