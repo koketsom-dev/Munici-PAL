@@ -12,6 +12,7 @@ import OperationalIssuePage from './OperationalIssue';
 import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
 import AboutPage from './AboutPage';
+import TicketStatusPage from './TicketStatusPage';
 import logo from './municiPAL.svg';
 import { forumAPI, notificationAPI, authAPI, userAPI } from '../../src/services/api';
 
@@ -279,7 +280,9 @@ function App() {
       case 'help':
         return <HelpPage goBack={() => setCurrentPage('dashboard')} />;
       case 'about':
-      return <AboutPage goBack={() => setCurrentPage('dashboard')} />;
+        return <AboutPage goBack={() => setCurrentPage('dashboard')} />;
+      case 'ticket-status':
+        return <TicketStatusPage goBack={() => setCurrentPage('dashboard')} />;
       default:
         return <DashboardPage 
           setCurrentPage={setCurrentPage}
