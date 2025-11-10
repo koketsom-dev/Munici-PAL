@@ -13,6 +13,37 @@ import { ticketAPI, adminAPI, userAPI } from "../../../src/services/api";
 const STATUSES = ["Pending", "In Progress", "Resolved"];
 const Board = ["Pending", "In Progress"];
 
+const RESOLUTION_REASONS = {
+    Water: [
+      "Leak repaired",
+      "Pipe replaced",
+      "Water supply restored",
+      "Drain blockage cleared",
+      "Mainline repair completed"
+    ],
+    Electricity: [
+      "Power restored",
+      "Transformer repaired",
+      "Cable fault fixed",
+      "Load issue resolved",
+      "Meter box replaced"
+    ],
+    Roads: [
+      "Pothole repaired",
+      "Road resurfaced",
+      "Obstruction cleared",
+      "Street sign replaced",
+      "Traffic light repaired"
+    ],
+    Refuse: [
+      "Garbage collected",
+      "Illegal dumping cleared",
+      "Refuse bins replaced",
+      "Area sanitized",
+      "Waste disposal resolved"
+    ]
+  };
+
 export default function Dashboard() {
   const [loggedInUser, setLoggedInUser] = useState(null);
   const [employeeData, setEmployeeData] = useState(null);
@@ -58,6 +89,10 @@ export default function Dashboard() {
       const response = await ticketAPI.list({});
       
       if (response.success && response.data) {
+        //add category field to each ticket 
+
+        //category: ticket.issue_type || "",
+
         // Transform API response to match component format
         const formattedTickets = response.data.map(ticket => ({
           id: ticket.id || ticket.ticket_id,
@@ -329,6 +364,7 @@ export default function Dashboard() {
             ticket={showResolvedPopup}
             onConfirm={confirmResolved}
             onCancel={() => setShowResolvedPopup(null)}
+            reasons={RESOLUTION_REASONS}
           />
         )}
 
