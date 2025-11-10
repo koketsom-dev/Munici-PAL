@@ -15,6 +15,11 @@ function DashboardPage({ setCurrentPage, bannerContent, commonIssues }) {
     return () => clearInterval(interval);
   }, [bannerContent.length]);
 
+  const handleCategoryClick = (issueType) => {
+    setCurrentPage('ticket-status'); // Navigate to ticket status page with the selected category
+    sessionStorage.setItem('selectedCategory', issueType); // Store the selected category for the ticket status page
+    };
+
   return (
     <div className="dashboard">
       {/* Welcome Banner */}
