@@ -368,6 +368,43 @@ function MyProfilePage({ goBack }) {
             </div>
           </div>
 
+          <div className="form-section">
+            <h3>Ward Information</h3>
+            <div className="form-group">
+              <label htmlFor="ward">Ward</label>
+              <input 
+                type="text" 
+                id="ward" 
+                value={formData.ward}
+                onChange={handleChange}
+                onBlur={handleBlur}
+                placeholder="Enter your ward number"
+              />
+            </div>
+            <div className="form-group">
+              <p style={{ marginTop: '10px', fontSize: '0.9rem', color: '#666' }}>
+                Not sure about your ward?{' '}
+                <a 
+                  href="https://maps.elections.org.za/vsfinder/" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  style={{ color: 'var(--primary-color)', textDecoration: 'none' }}
+                >
+                  Find your ward here
+                </a>
+              </p>
+              <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#f8f9fa', borderRadius: '8px', fontSize: '0.85rem' }}>
+                <p style={{ margin: '0 0 10px 0', fontWeight: '600', color: '#333' }}>Quick steps to find your ward:</p>
+                <ol style={{ margin: '0', paddingLeft: '20px', color: '#666' }}>
+                  <li>Click the "Find your ward here" link above</li>
+                  <li>Enter your address in the search bar</li>
+                  <li>Your ward number will be displayed on the map</li>
+                  <li>Enter the ward number in the field above</li>
+                  </ol>
+                  </div>
+                </div>
+              </div>
+
           <div className="form-actions">
             <button type="button" className="cancel-btn" onClick={goBack}>
               Cancel
