@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ticketAPI, userAPI } from '../../src/services/api';
+import { ticketAPI, userAPI, authAPI } from '../../src/services/api';
 
 function MyTicketHistoryPage({ goBack }) {
   const [tickets, setTickets] = useState([]);

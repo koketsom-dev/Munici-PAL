@@ -36,10 +36,6 @@ try {
     updateLastLogin($db, $user['user_type'], $user['id']);
 
     // Set session data directly
-    if (session_status() === PHP_SESSION_NONE) {
-        session_start();
-    }
-
     $_SESSION['user_id'] = $user['id'];
     $_SESSION['user_type'] = $user['user_type'];
     $_SESSION['email'] = $user['email'];

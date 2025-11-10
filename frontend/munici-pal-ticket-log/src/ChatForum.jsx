@@ -33,7 +33,7 @@ function ChatForumPage({ messages, newMessage, setNewMessage, handleSendMessage,
           </div>
         ) : (
           messages.map(message => (
-            <div key={message.id} className={`message ${message.user === 'You' ? 'own-message' : ''}`}>
+            <div key={message.id} className={`message ${message.isOwn ? 'own-message' : ''}`}>
               <div className="message-header">
                 <span className="user">{message.user}</span>
                 <span className="time">{message.time}</span>

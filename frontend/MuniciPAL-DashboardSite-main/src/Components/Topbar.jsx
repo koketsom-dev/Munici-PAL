@@ -8,6 +8,8 @@ export default function Topbar({
   onOpenEmployeeDetails,
   notifications = [],
   setNotifications,
+  onClearNotifications,
+  onLogout,
  }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [bellOpen, setBellOpen] = useState(false);
@@ -75,7 +77,13 @@ export default function Topbar({
                 <div className="px-4 py-2 text-gray-500">No new notifications</div>
               )}
               <button
-                onClick={() => setNotifications([])}
+                onClick={() => {
+                  if (onClearNotifications) {
+                    onClearNotifications();
+                  } else if (setNotifications) {
+                    setNotifications([]);
+                  }
+                }}
                 className="w-full text-left px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm"
               >
                 Mark all as read
@@ -132,7 +140,12 @@ export default function Topbar({
                 <li className="border-t mt-1">
                   <button
                     className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-red-600"
-                    onClick={() => alert("Logging out...")}
+                    onClick={() => {
+                      setDropdownOpen(false);
+                      if (onLogout) {
+                        onLogout();
+                      }
+                    }}
                   >
                     Log Out
                   </button>

@@ -13,7 +13,7 @@ import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
 import AboutPage from './AboutPage';
 import logo from './municiPAL.svg';
-import { forumAPI, notificationAPI, authAPI } from '../../src/services/api';
+import { forumAPI, notificationAPI, authAPI, userAPI } from '../../src/services/api';
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -71,11 +71,20 @@ function App() {
       setChatLoading(true);
       const response = await forumAPI.getMessages(50, 0);
       if (response.success && response.data.messages) {
+        const currentUser = userAPI.getCurrentUser();
         const formattedMessages = response.data.messages.map(msg => ({
           id: msg.message_id,
-          user: `${msg.first_name} ${msg.last_name}` || 'User',
+          user: msg.user_name || 'User',
+          userId: msg.user_id,
           message: msg.message_description,
-          time: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          time: new Date(msg.message_sent_timestamp).toLocaleString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          isOwn: currentUser && msg.user_id === currentUser.id
         }));
         setChatMessages(formattedMessages);
       }
@@ -109,11 +118,20 @@ function App() {
       const response = await forumAPI.addMessage('General', messageText);
       if (response.success) {
         const msg = response.data;
+        const currentUser = userAPI.getCurrentUser();
         const newChatMessage = {
           id: msg.message_id,
-          user: `${msg.first_name} ${msg.last_name}` || 'You',
+          user: msg.user_name || 'You',
+          userId: msg.user_id,
           message: msg.message_description,
-          time: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          time: new Date(msg.message_sent_timestamp).toLocaleString('en-GB', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+          }),
+          isOwn: currentUser && msg.user_id === currentUser.id
         };
         setChatMessages([...chatMessages, newChatMessage]);
       }

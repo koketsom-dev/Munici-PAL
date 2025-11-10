@@ -1001,6 +1001,22 @@ body {
   }
 }
 
+/* Solution One: Centered buttons on mobile */
+@media (max-width: 767px) {
+  .form-actions {
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+  }
+  
+  .form-actions .cancel-btn,
+  .form-actions .submit-btn {
+    width: 100%;
+    max-width: 280px;
+    justify-content: center;
+  }
+}
+
 @media (max-width: 767px) {
   .header {
     padding: 12px 15px;

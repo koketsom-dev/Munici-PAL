@@ -37,19 +37,21 @@ function LoginWrapper() {
   return (
     <div className="app-bg" style={{ backgroundImage: 'url(/background.jpg)' }}>
       <div className="top-left">
-        <img src="/municiPAL.jpg" alt="Munici-PAL Logo" className="brand-logo" />
+        <img src="/MuniciPAL.jpg" alt="Munici-PAL Logo" className="brand-logo" />
         <div className="brand-text">
           Welcome To<br /><strong>Munici-PAL</strong>
         </div>
         <div className="brand-slogan">Problem Action upLiftment</div>
       </div>
 
-      <div className="top-right">
-        <label className="mode-toggle">
-          <input type="checkbox" checked={mode === 'employee'} onChange={(e) => handleToggle(e.target.checked)} />
-          <span className="toggle-label">Community / Employee</span>
-        </label>
-      </div>
+            {location.pathname !== '/signup' && (
+        <div className="top-right">
+          <label className="mode-toggle">
+            <input type="checkbox" checked={mode === 'employee'} onChange={(e) => handleToggle(e.target.checked)} />
+            <span className="toggle-label">Community / Employee</span>
+          </label>
+        </div>
+      )}
 
       {renderPage()}
     </div>

@@ -8,10 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 }
 
 // Authenticate the user
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
     Response::unauthorized("User not authenticated");
 }

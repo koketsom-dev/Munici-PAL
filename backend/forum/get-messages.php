@@ -1,13 +1,14 @@
 <?php
 require_once '../bootstrap.php';
-require_once '../utils/Auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     Response::error("Method not allowed", 405);
 }
 
 try {
-    $auth = Auth::authenticate();
+    if (!isset($_SESSION['user_id'])) {
+        Response::error("User not authenticated", 401);
+    }
 
     $database = new Database();
     $db = $database->connect();

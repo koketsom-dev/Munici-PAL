@@ -40,11 +40,19 @@ export default function WeeklyStatusChart({ Tickets }) {
     prevWeekSunday.setDate(thisWeekMonday.getDate() - 1);
 
     const prevWeekTickets = Tickets.filter((t) => {
+        if (!t || !t.createdAt) {
+            return false;
+        }
         const created = new Date(t.createdAt);
+        if (Number.isNaN(created.valueOf())) {
+            return false;
+        }
         return created >= lastWeekMonday && created <= prevWeekSunday;
     });
 
-    const types = ['Water', 'Roads', 'Electricity', 'Refuse'];
+    const defaultTypes = ['Water', 'Roads', 'Electricity', 'Refuse'];
+    const derivedTypes = Array.from(new Set(prevWeekTickets.map((t) => t.type || 'Unspecified')));
+    const types = Array.from(new Set([...defaultTypes, ...derivedTypes]));
     const statuses = ['Pending', 'In Progress', 'Resolved'];
     const colors = {
         Pending: '#f44336',
@@ -58,15 +66,17 @@ export default function WeeklyStatusChart({ Tickets }) {
     });
 
     prevWeekTickets.forEach((ticket) => {
-        if (grouped[ticket.type]){
-            grouped[ticket.type][ticket.status] =
-                (grouped[ticket.type][ticket.status] || 0) + 1;
+        const typeKey = ticket.type || 'Unspecified';
+        const statusKey = ticket.status || 'Pending';
+        if (grouped[typeKey] && grouped[typeKey][statusKey] !== undefined) {
+            grouped[typeKey][statusKey] =
+                (grouped[typeKey][statusKey] || 0) + 1;
         }
     });
 
     const datasets = statuses.map((status) => ({
         label: status,
-        data: types.map((type) => grouped[type][status]),
+        data: types.map((type) => grouped[type][status] || 0),
         backgroundColor: colors[status],
         stack: 'Status',
     }));

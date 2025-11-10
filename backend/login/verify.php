@@ -5,9 +5,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     Response::error("Method not allowed", 405);
 }
 
-// Start session
-session_start();
-
 // Check if user is logged in
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
     Response::error("User not authenticated", 401);

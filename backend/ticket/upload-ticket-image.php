@@ -1,14 +1,15 @@
 <?php
 require_once '../bootstrap.php';
-require_once '../utils/Auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error("Method not allowed", 405);
 }
 
 try {
-    $auth = Auth::authenticate();
-    $userId = $auth['user_id'];
+    if (!isset($_SESSION['user_id'])) {
+        Response::error("User not authenticated", 401);
+    }
+    $userId = $_SESSION['user_id'];
 
     $ticketId = $_POST['ticket_id'] ?? null;
     

@@ -1,9 +1,8 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Sidebar from "../Components/Sidebar";
 import DetailHeader from "../Components/DetailHeader";
 import ChatForum from "../Components/ChatForum";
-import React, { useState, useEffect } from "react";
-import { Switch } from "@headlessui/react";
+import React, { useState, useEffect, useCallback } from "react";
 import { ticketAPI, userAPI, forumAPI } from "../../../src/services/api";
 
 function DetailedTickets() {
@@ -14,15 +13,7 @@ function DetailedTickets() {
 
     const [isPrivate, setIsPrivate] = useState(false);
 
-    useEffect(() => {
-        fetchTicket();
-    }, [id]);
-
-    useEffect(() => {
-        fetchMessages();
-    }, [id, isPrivate]);
-
-    const fetchTicket = async () => {
+    const fetchTicket = useCallback(async () => {
         try {
             setLoading(true);
             const response = await ticketAPI.getById(id);
@@ -30,11 +21,21 @@ function DetailedTickets() {
             if (response.success && response.data) {
                 const ticketData = response.data;
                 const location = ticketData.location;
-                const locationStr = location 
-                    ? (typeof location === 'string' 
-                        ? location 
-                        : `${location.suburb || ''} ${location.street_name || ''}`.trim() || 'N/A')
-                    : 'N/A';
+                let locationStr = 'N/A';
+                if (location) {
+                    if (typeof location === 'string') {
+                        locationStr = location.trim() || 'N/A';
+                    } else if (typeof location === 'object') {
+                        const parts = [
+                            location.street_name,
+                            location.suburb,
+                            location.city_town,
+                            location.province,
+                            location.postal_code
+                        ].map(part => typeof part === 'string' ? part.trim() : part).filter(part => part);
+                        locationStr = parts.length ? parts.join(', ') : 'N/A';
+                    }
+                }
                 
                 setTicket({
                     id: ticketData.id || ticketData.ticket_id,
@@ -57,17 +58,15 @@ function DetailedTickets() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [id]);
 
     const [chatMessages, setChatMessages] = useState([]);
     const [privateMessages, setPrivateMessages] = useState([]);
-    const [messagesLoading, setMessagesLoading] = useState(false);
 
     const [newMessage, setNewMessage] = useState('');
 
-    const fetchMessages = async () => {
+    const fetchMessages = useCallback(async () => {
         try {
-            setMessagesLoading(true);
             const user = userAPI.getCurrentUser();
             const currentUserId = user ? user.id || user.user_id : null;
 
@@ -95,31 +94,36 @@ function DetailedTickets() {
             }
         } catch (err) {
             console.error('Failed to fetch messages:', err);
-        } finally {
-            setMessagesLoading(false);
         }
-    };
+    }, [id]);
 
     const handleSendMessage = async () => {
-        if (newMessage.trim() !== '') {
-            try {
-                setNewMessage('');
+        if (newMessage.trim() === '') {
+            return;
+        }
 
-                // Send to backend
-                const currentUser = userAPI.getCurrentUser();
-                const userId = currentUser ? currentUser.id || currentUser.user_id : null;
-                await forumAPI.addMessage('Chat', newMessage, userId, id, isPrivate);
+        const messageToSend = newMessage;
 
-                // Refresh messages to show the new message
-                fetchMessages();
-            } catch (err) {
-                console.error('Failed to send message:', err);
-                alert('Failed to send message. Please try again.');
-                // Restore the message on error
-                setNewMessage(newMessage);
-            }
+        try {
+            setNewMessage('');
+
+            await forumAPI.addMessage('Chat', messageToSend, 1, id, isPrivate);
+
+            await fetchMessages();
+        } catch (err) {
+            console.error('Failed to send message:', err);
+            alert('Failed to send message. Please try again.');
+            setNewMessage(messageToSend);
         }
     };
+
+    useEffect(() => {
+        fetchTicket();
+    }, [fetchTicket]);
+
+    useEffect(() => {
+        fetchMessages();
+    }, [fetchMessages, isPrivate]);
 
     if (loading) {
         return (
@@ -184,9 +188,9 @@ function DetailedTickets() {
                                 <span className="text-sm font-medium text-gray-700">
                                     {isPrivate ? "Citizen Chat" : "Private Chat"}
                                 </span>
-                                <Switch
-                                    checked={isPrivate}
-                                    onChange={setIsPrivate}
+                                <button
+                                    type="button"
+                                    onClick={() => setIsPrivate((prev) => !prev)}
                                     className={`${isPrivate ? 'bg-blue-600' : 'bg-gray-200'}
                                             relative inline-flex h-6 w-11 items-center rounded-full transition-colors
                                             focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500`}
@@ -195,7 +199,7 @@ function DetailedTickets() {
                                         className={`${isPrivate ? 'translate-x-6' : 'translate-x-1'}
                                             inline-block h-4 w-4 transform rounded-full bg-white transition-transform`}
                                     />
-                                </Switch>
+                                </button>
                             </div>
                         </div>
 

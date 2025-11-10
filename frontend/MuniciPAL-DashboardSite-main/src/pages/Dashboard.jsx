@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import Sidebar from "../Components/Sidebar";
 import Topbar from "../Components/Topbar";
@@ -8,10 +8,27 @@ import UserDetailsModal from "../Components/UserDetailsModal";
 import { Ticket } from "lucide-react";
 import ResolvedPopup from "../Components/ResolvedPopup";
 import AssignmentPopup from "../Components/AssignmentPopup";
-import { ticketAPI, adminAPI, userAPI } from "../../../src/services/api";
+import { ticketAPI, adminAPI, userAPI, authAPI, notificationAPI } from "../../../src/services/api";
 
 const STATUSES = ["Pending", "In Progress", "Resolved"];
 const Board = ["Pending", "In Progress"];
+
+const normalizeStatus = (status) => {
+  if (!status) {
+    return "Pending";
+  }
+  const formatted = String(status).trim().toLowerCase().replace(/[_-]+/g, " ");
+  if (formatted === "resolved") {
+    return "Resolved";
+  }
+  if (formatted === "in progress") {
+    return "In Progress";
+  }
+  if (formatted === "pending") {
+    return "Pending";
+  }
+  return "Pending";
+};
 
 export default function Dashboard() {
   const [loggedInUser, setLoggedInUser] = useState(null);
@@ -34,6 +51,44 @@ export default function Dashboard() {
   const [resolvedTicketIds, setResolvedTicketIds] = useState(new Set());
   const [assignmentPopup, setAssignmentPopup] = useState({ message: '', type: '' });
 
+  const handleClearNotifications = useCallback(async () => {
+    const ids = notifications
+      .map((item) => item.id)
+      .filter((id) => id !== null && id !== undefined);
+    if (ids.length > 0) {
+      try {
+        await notificationAPI.markRead(ids);
+      } catch (err) {
+        console.error('Failed to mark notifications as read:', err);
+      }
+    }
+    setNotifications([]);
+  }, [notifications, setNotifications]);
+
+  const fetchNotifications = useCallback(async () => {
+    try {
+      const response = await notificationAPI.list();
+      if (response.success && Array.isArray(response.data)) {
+        const formatted = response.data.map((item) => ({
+          id: item.id ?? item.notification_id ?? `${item.ticket_id ?? "notification"}-${item.created_at ?? item.time ?? Date.now()}`,
+          message: item.message ?? item.notification ?? item.description ?? `Ticket ${item.ticket_id ?? ""} assigned to you`.trim(),
+          time: item.created_at ? new Date(item.created_at).toLocaleString() : item.time ?? ""
+        }));
+        setNotifications(formatted);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err);
+    }
+  }, [setNotifications]);
+
+  const handleLogout = async () => {
+    await authAPI.logout();
+    sessionStorage.setItem('sessionMessage', 'You have been logged out successfully.');
+    setLoggedInUser(null);
+    setEmployeeData(null);
+    window.location.href = '/';
+  };
+
   // Fetch user data and tickets on mount
   useEffect(() => {
     const user = userAPI.getCurrentUser();
@@ -52,27 +107,58 @@ export default function Dashboard() {
     fetchEmployees();
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    const loadNotifications = async () => {
+      await fetchNotifications();
+    };
+    loadNotifications();
+    const intervalId = setInterval(() => {
+      if (active) {
+        loadNotifications();
+      }
+    }, 30000);
+    return () => {
+      active = false;
+      clearInterval(intervalId);
+    };
+  }, [fetchNotifications]);
+
   const fetchTickets = async () => {
     try {
       setLoading(true);
       const response = await ticketAPI.list({});
       
       if (response.success && response.data) {
-        // Transform API response to match component format
-        const formattedTickets = response.data.map(ticket => ({
-          id: ticket.id || ticket.ticket_id,
-          ticket_id: ticket.id || ticket.ticket_id,
-          title: ticket.title || ticket.subject || 'Untitled Ticket',
-          status: ticket.status || 'Pending',
-          location: ticket.location || 'N/A',
-          createdAt: ticket.createdAt || ticket.date_created || ticket.created_at ? new Date(ticket.createdAt || ticket.date_created || ticket.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
-          ResolvedAt: ticket.completedAt || ticket.date_completed || ticket.resolved_at || null,
-          description: ticket.description || '',
-          assignedTo: ticket.assignedTo || ticket.assigned_to || 'Unassigned',
-          hasNewUpdate: false,
-          hasNewMessage: false,
-        }));
-        setTickets(formattedTickets);
+        const currentUser = userAPI.getCurrentUser();
+        const isAdminUser = (currentUser?.access_level || "").toLowerCase() === "admin";
+        const shouldFilterByEmployee = currentUser?.user_type === 'employee' && !isAdminUser;
+        const employeeId = shouldFilterByEmployee ? Number(currentUser.id) : null;
+
+        const formattedTickets = response.data.map(ticket => {
+          const assignedToId = ticket.assigned_to_id ?? ticket.emp_id ?? null;
+
+          return {
+            id: ticket.id || ticket.ticket_id,
+            ticket_id: ticket.id || ticket.ticket_id,
+            title: ticket.title || ticket.subject || 'Untitled Ticket',
+            status: normalizeStatus(ticket.status),
+            location: ticket.location || 'N/A',
+            createdAt: ticket.createdAt || ticket.date_created || ticket.created_at ? new Date(ticket.createdAt || ticket.date_created || ticket.created_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            ResolvedAt: ticket.completedAt || ticket.date_completed || ticket.resolved_at || null,
+            description: ticket.description || '',
+            assignedTo: ticket.assignedTo || ticket.assigned_to || 'Unassigned',
+            assignedToId: assignedToId !== null ? Number(assignedToId) : null,
+            hasNewUpdate: false,
+            hasNewMessage: false,
+          };
+        });
+
+        const filteredTickets = employeeId !== null
+          ? formattedTickets.filter(ticket => ticket.assignedToId === employeeId)
+          : formattedTickets;
+
+        setTickets(filteredTickets);
       }
     } catch (err) {
       console.error('Failed to fetch tickets:', err);
@@ -105,6 +191,7 @@ export default function Dashboard() {
       setSelectedTicketForAssignment(null);
       setSelectedEmployeeId('');
       await fetchTickets();
+      await fetchNotifications();
       setAssignmentPopup({ message: 'Ticket assigned successfully', type: 'success' });
     } catch (err) {
       console.error('Failed to assign ticket:', err);
@@ -191,9 +278,11 @@ export default function Dashboard() {
           username={loggedInUser || 'Employee'}
           notifications={notifications}
           setNotifications={setNotifications}
+          onClearNotifications={handleClearNotifications}
           onOpenContacts={() => setShowContacts(true)}
           onOpenCalendar={() => setShowCalendar(true)}
           onOpenEmployeeDetails={() => setShowUserDetails(true)}
+          onLogout={handleLogout}
         />
 
         {/* Open Tickets summary box */}

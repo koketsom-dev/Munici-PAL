@@ -5,9 +5,7 @@ function Header({ backTo }) {
   const navigate = useNavigate();
 
   return (
-    <div className="flex justify-between items-center mb-6 h-12 pr-4 pl-0">
-      
-      {/* Left: Back Button */}
+    <div className="flex justify-between items-center mb-6 pr-4 pl-0">
       <div className="flex items-center space-x-2">
         <button
           onClick={() => navigate(-1)}

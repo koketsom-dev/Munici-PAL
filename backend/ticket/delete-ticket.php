@@ -1,6 +1,5 @@
 <?php
 require_once '../bootstrap.php';
-require_once '../utils/Auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
     Response::error("Method not allowed", 405);
@@ -8,9 +7,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'DELETE') {
 
 try {
     // Authenticate user
-    $auth = Auth::authenticate();
-    $userId = $auth['user_id'];
-    $userType = $auth['user_type'];
+    if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
+        Response::error("User not authenticated", 401);
+    }
+    $userId = $_SESSION['user_id'];
+    $userType = $_SESSION['user_type'];
 
     // Get input data
     $input = json_decode(file_get_contents('php://input'), true);

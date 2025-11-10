@@ -5,9 +5,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     Response::error("Method not allowed", 405);
 }
 
-// Start session
-session_start();
-
 // Clear all session data
 $_SESSION = [];
 

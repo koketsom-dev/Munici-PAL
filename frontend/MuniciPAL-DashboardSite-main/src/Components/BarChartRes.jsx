@@ -24,34 +24,49 @@ ChartJS.register(
 export default function ResolvedTimeChart({ Tickets }) {
     const chartRef = useRef(null);
 
+    const defaultTypes = ["Water", "Roads", "Electricity", "Refuse"];
     const typeDuration = {};
+
     Tickets.forEach((ticket) => {
-        if (ticket.status !== "Resolved" || !ticket.ResolvedAt) {
+        if (!ticket || ticket.status !== "Resolved" || !ticket.ResolvedAt) {
             return;
         }
 
-        const created = new Date(ticket.createdAt);
-        const resolved = new Date(ticket.ResolvedAt);
-        const duration = (resolved - created) / (1000 * 60 * 60 * 24);
+        const created = ticket.createdAt ? new Date(ticket.createdAt) : null;
+        const resolved = ticket.ResolvedAt ? new Date(ticket.ResolvedAt) : null;
 
-        if (!typeDuration[ticket.type]) typeDuration[ticket.type] = [];
-        typeDuration[ticket.type].push(duration);
+        if (!created || !resolved || Number.isNaN(created.valueOf()) || Number.isNaN(resolved.valueOf())) {
+            return;
+        }
+
+        const duration = (resolved - created) / (1000 * 60 * 60 * 24);
+        if (!Number.isFinite(duration)) {
+            return;
+        }
+
+        const typeKey = ticket.type || "Unspecified";
+        if (!typeDuration[typeKey]) typeDuration[typeKey] = [];
+        typeDuration[typeKey].push(duration);
     });
 
-    const avgDurations = Object.fromEntries(
-        Object.entries(typeDuration).map(([type, durations]) => [
-            type,
-            durations.length > 0 ? durations.reduce((a, b) => a + b, 0) / durations.length : 0,
-        ])
-    );
+    const chartTypes = Array.from(new Set([...defaultTypes, ...Object.keys(typeDuration)]));
+
+    const avgDurations = chartTypes.map((type) => {
+        const durations = typeDuration[type] || [];
+        if (durations.length === 0) return 0;
+        const total = durations.reduce((sum, value) => sum + value, 0);
+        return total / durations.length;
+    });
+
+    const colorPalette = ["#36A2EB", "#E50914", "#ffff00", "#9c5708", "#10b981", "#7c3aed"];
 
     const data = {
-        labels: Object.keys(avgDurations),
+        labels: chartTypes,
         datasets: [
             {
                 label: "Avg. Resolution Time (days)",
-                data: Object.values(avgDurations).map((d) => d.toFixed(1)),
-                backgroundColor: ["#ffff00", "#9c5708", "#E50914", "#36A2EB"],
+                data: avgDurations.map((value) => Number(value.toFixed(1))),
+                backgroundColor: chartTypes.map((_, index) => colorPalette[index % colorPalette.length]),
                 borderRadius: 5,
                 hoverOffset: 10,
             },
@@ -78,8 +93,8 @@ export default function ResolvedTimeChart({ Tickets }) {
                 callbacks: {
                     label: (context) => {
                         const type = context.label;
-                        const aveTime = context.parsed.y;
-                        return `${type}: Avg. ${aveTime} days`;
+                        const aveTime = context.parsed?.y ?? 0;
+                        return `${type}: Avg. ${aveTime.toFixed(1)} days`;
                     },
                 },
             },

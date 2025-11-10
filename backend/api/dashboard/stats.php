@@ -1,6 +1,5 @@
 <?php
 require_once '../../bootstrap.php';
-require_once '../../utils/Auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     Response::error("Method not allowed", 405);
@@ -8,8 +7,10 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
 
 try {
     // Authenticate user
-    $auth = Auth::authenticate();
-    $municipalityId = $auth['municipality_id'] ?? 1;
+    if (!isset($_SESSION['user_id'])) {
+        Response::error("User not authenticated", 401);
+    }
+    $municipalityId = $_SESSION['municipality_id'] ?? 1;
     
     $database = new Database();
     $db = $database->connect();

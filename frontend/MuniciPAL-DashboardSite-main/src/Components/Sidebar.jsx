@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import MunicipalIcon from "../assets/municiPAL.svg?react";
+import { userAPI } from "../../../src/services/api";
 
 const NAV = [
   { to: "/dashboard", label: "Dashboard", icon: "🏠" },
@@ -14,6 +15,11 @@ const NAV = [
 export default function Sidebar() {
   const { pathname } = useLocation();
   const [collapsed, setCollapsed] = useState(false);
+  const currentUser = userAPI.getCurrentUser();
+  const isAdmin = (currentUser?.access_level || "").toLowerCase() === "admin";
+  const navItems = isAdmin
+    ? NAV
+    : NAV.filter((item) => item.to !== "/dashboard/admin" && item.to !== "/dashboard/user-admin");
   const isActive = (to) => pathname === to;
 
   return (
@@ -39,7 +45,7 @@ export default function Sidebar() {
 
       {/* Nav items */}
       <nav className="px-2 space-y-1">
-        {NAV.map((item) => (
+        {navItems.map((item) => (
           <Link
             key={item.to}
             to={item.to}

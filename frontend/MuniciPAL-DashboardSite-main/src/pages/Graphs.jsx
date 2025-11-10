@@ -22,15 +22,27 @@ export default function Graphs({ backTo }) {
             const response = await ticketAPI.list({});
             
             if (response.success && response.data) {
-                const formattedTickets = response.data.map(ticket => ({
-                    id: ticket.id || ticket.ticket_id,
-                    title: ticket.title || ticket.subject || 'Untitled Ticket',
-                    status: ticket.status || 'Pending',
-                    type: ticket.issue_type || 'N/A',
-                    createdAt: ticket.createdAt || ticket.date_created || '',
-                    ResolvedAt: ticket.completedAt || ticket.date_completed || '',
-                    owner: ticket.assignedTo || 'Unassigned'
-                }));
+                const parseDate = (value) => {
+                    if (!value) return null;
+                    const date = new Date(value);
+                    if (Number.isNaN(date.valueOf())) return null;
+                    return date.toISOString();
+                };
+
+                const formattedTickets = response.data.map(ticket => {
+                    const createdAt = parseDate(ticket.createdAt || ticket.created_at || ticket.date_created);
+                    const resolvedAt = parseDate(ticket.completedAt || ticket.resolved_at || ticket.date_completed);
+
+                    return {
+                        id: ticket.id || ticket.ticket_id,
+                        title: ticket.title || ticket.subject || 'Untitled Ticket',
+                        status: ticket.status || 'Pending',
+                        type: ticket.issue_type || ticket.type || 'N/A',
+                        createdAt,
+                        ResolvedAt: resolvedAt,
+                        owner: ticket.assignedTo || ticket.assigned_to || 'Unassigned'
+                    };
+                });
                 setAllTickets(formattedTickets);
             } else {
                 setAllTickets([]);

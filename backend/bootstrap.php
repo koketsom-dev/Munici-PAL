@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 // Auto-load required files
 require_once __DIR__ . '/utils/Database.php';
-require_once __DIR__ . '/utils/Response.php';
+require_once __DIR__ . '/utils/response.php';
 require_once __DIR__ . '/utils/sanitize.php';
 
 // Set content type to JSON

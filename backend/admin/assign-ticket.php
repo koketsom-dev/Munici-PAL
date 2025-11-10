@@ -8,10 +8,6 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Authenticate the user
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_type'])) {
     Response::unauthorized("User not authenticated");
 }
@@ -47,7 +43,7 @@ $assignee_id = $data['assignee_id'];
 
 // Update the ticket in the database
 try {
-    $stmt = $conn->prepare("UPDATE Tickets SET emp_id = :assignee_id, last_action_date_time = CURRENT_TIMESTAMP WHERE ticket_id = :ticket_id");
+    $stmt = $conn->prepare("UPDATE Tickets SET emp_id = :assignee_id, last_action_date_time = CURRENT_TIMESTAMP, new_notification = TRUE WHERE ticket_id = :ticket_id");
     $stmt->bindParam(':assignee_id', $assignee_id);
     $stmt->bindParam(':ticket_id', $ticket_id);
     
