@@ -23,7 +23,7 @@ export default function SignupPage(props) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    
+
     if (!username.trim()) {
       setError('Username is required.');
       return;
@@ -94,34 +94,47 @@ export default function SignupPage(props) {
             <p className="sub">Please choose a username and password</p>
           </div>
           <div className="fields">
-            <label className="input-label">Username / Email <FaUser className="icon" /></label>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaUser className="icon" />
+              Username / Email
+            </label>
+
             <div className="input-row">
-              <input 
-                value={username} 
-                onChange={e => setUsername(e.target.value)} 
-                placeholder="Username or email" 
+              <input
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                placeholder="Username or email"
               />
             </div>
-            <label className="input-label">Password <FaLock className="icon" /></label>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaLock className="icon" />
+              Password
+            </label>
             <div className="input-row">
-              <input 
-                type="password" 
-                value={password} 
-                onChange={e => setPassword(e.target.value)} 
-                placeholder="Password" 
+              <input
+                type="password"
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Password"
               />
             </div>
-            <label className="input-label">Confirm password <FaLock className="icon" /></label>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaLock className="icon" />
+              Confirm Password
+            </label>
             <div className="input-row">
-              <input 
-                type="password" 
-                value={confirmPassword} 
-                onChange={e => setConfirmPassword(e.target.value)} 
-                placeholder="Confirm password" 
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={e => setConfirmPassword(e.target.value)}
+                placeholder="Confirm password"
               />
             </div>
 
-            <label className="input-label">Gender <FaUser className="icon" /></label>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaUser className="icon" />
+              Gender
+            </label>
             <div className="input-row">
               <select value={gender} onChange={e => setGender(e.target.value)}>
                 <option value="Male">Male</option>
@@ -130,7 +143,10 @@ export default function SignupPage(props) {
               </select>
             </div>
 
-            <label className="input-label">Preferred language <FaUser className="icon" /></label>
+            <label className="input-label" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <FaUser className="icon" />
+              Preferred Language
+            </label>
             <div className="input-row">
               <select value={language} onChange={e => setLanguage(e.target.value)}>
                 <option value="Afrikaans">Afrikaans</option>
@@ -147,24 +163,24 @@ export default function SignupPage(props) {
                 <option value="Other">Other</option>
               </select>
             </div>
-            
+
             {error && <div className="error">{error}</div>}
-            
+
             <div className="terms-link" onClick={() => setShowTerms(true)}>
               Read Terms & Conditions
             </div>
-            
+
             <div className="row-between" style={{ flexDirection: 'row', justifyContent: 'center', gap: '18px' }}>
               <Link to="/" className="secondary linkish">Back to Login</Link>
-              <button 
-                type="submit" 
-                className="primary" 
+              <button
+                type="submit"
+                className="primary"
                 disabled={!agreedToTerms || loading}
               >
                 {loading ? 'Signing Up...' : 'Signup'}
               </button>
             </div>
-            
+
             <TermsModal
               isOpen={showTerms}
               onClose={() => setShowTerms(false)}

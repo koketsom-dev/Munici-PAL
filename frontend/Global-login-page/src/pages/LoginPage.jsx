@@ -2,6 +2,7 @@
 import { FaUser, FaLock } from 'react-icons/fa';
 import { Link, useNavigate } from 'react-router-dom';
 import { authAPI } from '../../../src/services/api';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 export default function LoginPage(props) {
   const { mode, setMode } = props;
@@ -9,6 +10,7 @@ export default function LoginPage(props) {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showForgot, setShowForgot] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -75,17 +77,26 @@ export default function LoginPage(props) {
 
             <div className="row-between">
               <label className="small"><input type="checkbox" /> Keep me logged in</label>
-              <Link to="/forgot" className="forgot">Forgot password</Link>
+                            <button
+                type="button"
+                className="forgot"
+                onClick={() => setShowForgot(true)}
+                style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'inherit', textDecoration: 'underline' }}
+              >
+                Forgot password
+              </button>
             </div>
             
             <button type="submit" className="primary" disabled={loading}>
               {loading ? 'Logging in...' : 'Login'}
             </button>
-            
+            {mode !== 'employee' && (
             <div className="signup-line">Don't have an account? <Link to="/signup" className="linkish">SIGN UP </Link></div>
-          </div>
+          )}
+            </div>
         </form>
       </div>
+      {showForgot && <ForgotPasswordModal onClose={() => setShowForgot(false)} />}
     </div>
   );
 }

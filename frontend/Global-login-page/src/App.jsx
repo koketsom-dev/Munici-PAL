@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import './App.css';
-import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import LoginPage from './pages/LoginPage.jsx';
 import SignupPage from './pages/SignupPage.jsx';
 import ForgotPassword from './pages/ForgotPassword.jsx';
 import ConfigLoading from './pages/ConfigLoading.jsx';
+
 
 const BrandOnlyApp = () => (
   <div className="app-bg" style={{ backgroundImage: 'url(/background.jpg)' }}>
@@ -21,6 +22,7 @@ const BrandOnlyApp = () => (
 function AppShell() {
   const [mode, setMode] = useState('community');
   const navigate = useNavigate();
+  const location = useLocation();
 
   const handleToggle = (checked) => setMode(checked ? 'employee' : 'community');
   const goToDashboard = () => navigate('/dashboard');
@@ -28,19 +30,26 @@ function AppShell() {
   return (
     <div className="app-bg" style={{ backgroundImage: 'url(/background.jpg)' }}>
       <div className="top-left">
-        <img src="/municiPAL.jpg" alt="Munici-PAL Logo" className="brand-logo" />
+        <img
+          src="/municiPAL.svg"
+          alt="Munici-PAL Logo"
+          className="brand-logo"
+          style={{ backgroundColor: 'white', borderRadius: '50%', padding: '6px', objectFit: 'contain' }}
+        />
         <div className="brand-text">
           Welcome To<br /><strong>Munici-PAL</strong>
         </div>
         <div className="brand-slogan">Problem Action upLiftment</div>
       </div>
 
-      <div className="top-right">
-        <label className="mode-toggle">
-          <input type="checkbox" checked={mode === 'employee'} onChange={(e) => handleToggle(e.target.checked)} />
-          <span className="toggle-label">Community / Employee</span>
-        </label>
-      </div>
+      {location.pathname !== '/signup' && (
+        <div className="top-right">
+          <label className="mode-toggle">
+            <input type="checkbox" checked={mode === 'employee'} onChange={(e) => handleToggle(e.target.checked)} />
+            <span className="toggle-label">Community / Employee</span>
+          </label>
+        </div>
+      )}
 
       <Routes>
         <Route path="/" element={<LoginPage mode={mode} setMode={setMode} onLoginNavigate={goToDashboard} />} />
