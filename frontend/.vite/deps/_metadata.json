@@ -1,0 +1,73 @@
+{
+  "hash": "f610dba7",
+  "configHash": "135df27c",
+  "lockfileHash": "abb8e618",
+  "browserHash": "b8c03012",
+  "optimized": {
+    "react-router-dom": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/react-router-dom/dist/index.mjs",
+      "file": "react-router-dom.js",
+      "fileHash": "3d78e7ac",
+      "needsInterop": false
+    },
+    "react": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/react/index.js",
+      "file": "react.js",
+      "fileHash": "2a8dcfdb",
+      "needsInterop": true
+    },
+    "lucide-react": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/lucide-react/dist/esm/lucide-react.js",
+      "file": "lucide-react.js",
+      "fileHash": "955668ed",
+      "needsInterop": false
+    },
+    "react-dom/client": {
+      "src": "../../node_modules/react-dom/client.js",
+      "file": "react-dom_client.js",
+      "fileHash": "ad05e952",
+      "needsInterop": true
+    },
+    "react-icons/fa": {
+      "src": "../../node_modules/react-icons/fa/index.mjs",
+      "file": "react-icons_fa.js",
+      "fileHash": "8f36b265",
+      "needsInterop": false
+    },
+    "react-chartjs-2": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/react-chartjs-2/dist/index.js",
+      "file": "react-chartjs-2.js",
+      "fileHash": "9b4a6e06",
+      "needsInterop": false
+    },
+    "chart.js": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/chart.js/dist/chart.js",
+      "file": "chart__js.js",
+      "fileHash": "a0ec90ed",
+      "needsInterop": false
+    },
+    "framer-motion": {
+      "src": "../../MuniciPAL-DashboardSite-main/node_modules/framer-motion/dist/es/index.mjs",
+      "file": "framer-motion.js",
+      "fileHash": "7d4470dc",
+      "needsInterop": false
+    }
+  },
+  "chunks": {
+    "chunk-ZOQ36PN3": {
+      "file": "chunk-ZOQ36PN3.js"
+    },
+    "chunk-MAL23CDX": {
+      "file": "chunk-MAL23CDX.js"
+    },
+    "chunk-IINOTWFG": {
+      "file": "chunk-IINOTWFG.js"
+    },
+    "chunk-UM2JKLQ6": {
+      "file": "chunk-UM2JKLQ6.js"
+    },
+    "chunk-G3PMV62Z": {
+      "file": "chunk-G3PMV62Z.js"
+    }
+  }
+}

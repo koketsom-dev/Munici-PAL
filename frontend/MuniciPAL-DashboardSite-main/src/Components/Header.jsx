@@ -1,11 +1,23 @@
 import { User, Funnel} from "lucide-react";
 import { useState, useRef, useEffect } from "react";
+import { userAPI } from "../../../src/services/api";
 
 
 function Header() {
   const [showFilters, setShowFilters] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState(null);
+  const [userName, setUserName] = useState("Employee Name");
   const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    const user = userAPI.getCurrentUser();
+    if (user) {
+      const nameParts = [user.first_name, user.surname].filter(Boolean).join(" ").trim();
+      const fullName = typeof user.full_name === "string" ? user.full_name.trim() : "";
+      const resolvedName = fullName || nameParts || user.email || "Employee Name";
+      setUserName(resolvedName);
+    }
+  }, []);
 
   //Initial filter options
   const filters = ["Status", "Type"];
@@ -89,7 +101,7 @@ function Header() {
         </select>
         <button className="flex items-center bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
           <User className="w-5 h-5 mr-2" />
-          <span>Employee Name</span>
+          <span>{userName}</span>
         </button>
       </div>
     </div>

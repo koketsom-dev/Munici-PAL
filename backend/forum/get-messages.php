@@ -21,7 +21,14 @@ try {
     $offset = (int)($_GET['offset'] ?? 0);
     $roomId = (int)($_GET['room_id'] ?? 1);
     $ticketId = isset($_GET['ticket_id']) ? (int)$_GET['ticket_id'] : null;
-    $isPrivate = isset($_GET['is_private']) ? (bool)$_GET['is_private'] : null;
+    $isPrivate = null;
+
+    if (isset($_GET['is_private'])) {
+        $filtered = filter_var($_GET['is_private'], FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE);
+        if ($filtered !== null) {
+            $isPrivate = $filtered ? 1 : 0;
+        }
+    }
 
     $whereConditions = ["cm.room_id = :room_id", "cm.parent_message_id IS NULL"];
     $params = [':room_id' => $roomId];

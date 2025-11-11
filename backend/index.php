@@ -1,7 +1,7 @@
 <?php
 // backend/index.php - Main Router
 require_once __DIR__ . '/bootstrap.php';
-require_once __DIR__ . '/utils/Response.php';
+require_once __DIR__ . '/utils/response.php';
 
 // CORS headers
 header("Access-Control-Allow-Origin: *");

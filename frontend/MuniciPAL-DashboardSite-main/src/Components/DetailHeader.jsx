@@ -1,14 +1,22 @@
 import { User, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
-function Header({ backTo }) {
+function Header({ backTo, employeeName }) {
   const navigate = useNavigate();
+
+  const handleBack = () => {
+    if (backTo) {
+      navigate(backTo);
+      return;
+    }
+    navigate(-1);
+  };
 
   return (
     <div className="flex justify-between items-center mb-6 pr-4 pl-0">
       <div className="flex items-center space-x-2">
         <button
-          onClick={() => navigate(-1)}
+          onClick={handleBack}
           className="flex items-center bg-gray-200 text-gray-800 px-3 py-1 rounded hover:bg-gray-300 transition"
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
@@ -22,7 +30,7 @@ function Header({ backTo }) {
       <div className="flex items-center space-x-4">
         <button className="flex items-center bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition">
           <User className="w-5 h-5 mr-2" />
-          <span>Employee Name</span>
+          <span>{employeeName || "Unassigned"}</span>
         </button>
       </div>
     </div>

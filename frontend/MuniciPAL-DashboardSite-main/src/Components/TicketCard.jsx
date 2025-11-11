@@ -14,7 +14,7 @@ function TicketCard({ ticket }) {
         {ticket.id && <span className="text-gray-600">Ticket ID: {ticket.id}</span>}
       </div>
       <div className="flex justify-between text-sm text-gray-600">
-        <span>Location: {ticket.location}</span>
+        {/* <span>Location: {ticket.location}</span> */}
       </div>
     </div>
   );

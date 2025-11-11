@@ -3,7 +3,34 @@ import Sidebar from "../Components/Sidebar";
 import DetailHeader from "../Components/DetailHeader";
 import ChatForum from "../Components/ChatForum";
 import React, { useState, useEffect, useCallback } from "react";
-import { ticketAPI, userAPI, forumAPI } from "../../../src/services/api";
+import { ticketAPI, userAPI, forumAPI, adminAPI } from "../../../src/services/api";
+
+const TIME_ZONE = "Africa/Johannesburg";
+const dateTimeFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIME_ZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+});
+const timeFormatter = new Intl.DateTimeFormat("en-GB", {
+    timeZone: TIME_ZONE,
+    hour: "2-digit",
+    minute: "2-digit"
+});
+const ensureDate = (value) => {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) {
+        return value;
+    }
+    const parsed = value ? new Date(value) : new Date();
+    if (Number.isNaN(parsed.getTime())) {
+        return new Date();
+    }
+    return parsed;
+};
+const formatDateTime = (value) => dateTimeFormatter.format(ensureDate(value));
+const formatTime = (value) => timeFormatter.format(ensureDate(value));
 
 function DetailedTickets() {
     const { id } = useParams();
@@ -12,6 +39,7 @@ function DetailedTickets() {
     const [error, setError] = useState('');
 
     const [isPrivate, setIsPrivate] = useState(false);
+    const [employees, setEmployees] = useState([]);
 
     const fetchTicket = useCallback(async () => {
         try {
@@ -37,18 +65,18 @@ function DetailedTickets() {
                     }
                 }
                 
+                const createdSource = ticketData.createdAt || ticketData.date_created || ticketData.created_at;
+                const resolvedSource = ticketData.completedAt || ticketData.date_completed || ticketData.resolved_at;
                 setTicket({
                     id: ticketData.id || ticketData.ticket_id,
                     title: ticketData.title || ticketData.subject || 'Untitled Ticket',
                     status: ticketData.status || 'Pending',
                     location: locationStr,
                     description: ticketData.description || '',
-                    createdAt: ticketData.createdAt || ticketData.date_created || ticketData.created_at 
-                        ? new Date(ticketData.createdAt || ticketData.date_created || ticketData.created_at).toISOString().split('T')[0] 
-                        : new Date().toISOString().split('T')[0],
+                    createdAt: formatDateTime(createdSource),
                     assignedTo: ticketData.assignedTo || ticketData.assigned_to || 'Unassigned',
                     issue_type: ticketData.issue_type,
-                    resolved_at: ticketData.completedAt || ticketData.date_completed || ticketData.resolved_at
+                    resolved_at: resolvedSource ? formatDateTime(resolvedSource) : null
                 });
             } else {
                 setError('Ticket not found');
@@ -64,6 +92,7 @@ function DetailedTickets() {
     const [privateMessages, setPrivateMessages] = useState([]);
 
     const [newMessage, setNewMessage] = useState('');
+    const [activeMentions, setActiveMentions] = useState([]);
 
     const fetchMessages = useCallback(async () => {
         try {
@@ -78,7 +107,7 @@ function DetailedTickets() {
                     id: msg.message_id,
                     user: msg.user_id === currentUserId ? 'You' : (msg.user_name || 'Unknown User'),
                     message: msg.message_description,
-                    timestamp: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    timestamp: formatTime(msg.message_sent_timestamp)
                 }));
                 setChatMessages(formattedCitizenMessages);
             }
@@ -88,7 +117,7 @@ function DetailedTickets() {
                     id: msg.message_id,
                     user: msg.user_id === currentUserId ? 'You' : (msg.user_name || 'Unknown User'),
                     message: msg.message_description,
-                    timestamp: new Date(msg.message_sent_timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    timestamp: formatTime(msg.message_sent_timestamp)
                 }));
                 setPrivateMessages(formattedPrivateMessages);
             }
@@ -97,23 +126,30 @@ function DetailedTickets() {
         }
     }, [id]);
 
-    const handleSendMessage = async () => {
+    const handleSendMessage = async (mentionList = activeMentions) => {
         if (newMessage.trim() === '') {
             return;
         }
 
         const messageToSend = newMessage;
+        const mentionIds = Array.from(new Set(
+            (mentionList || [])
+                .map((item) => Number(item.employeeId))
+                .filter((value) => Number.isInteger(value) && value > 0)
+        ));
 
         try {
             setNewMessage('');
 
-            await forumAPI.addMessage('Chat', messageToSend, 1, id, isPrivate);
+            await forumAPI.addMessage('Chat', messageToSend, 1, id, isPrivate, mentionIds);
 
             await fetchMessages();
+            setActiveMentions([]);
         } catch (err) {
             console.error('Failed to send message:', err);
             alert('Failed to send message. Please try again.');
             setNewMessage(messageToSend);
+            setActiveMentions(mentionList);
         }
     };
 
@@ -125,12 +161,30 @@ function DetailedTickets() {
         fetchMessages();
     }, [fetchMessages, isPrivate]);
 
+    useEffect(() => {
+        let isMounted = true;
+        async function loadEmployees() {
+            try {
+                const response = await adminAPI.getEmployees();
+                if (isMounted && response.success && Array.isArray(response.data)) {
+                    setEmployees(response.data);
+                }
+            } catch (err) {
+                console.error('Failed to load employees', err);
+            }
+        }
+        loadEmployees();
+        return () => {
+            isMounted = false;
+        };
+    }, []);
+
     if (loading) {
         return (
             <div className="flex h-screen">
                 <Sidebar />
                 <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6">
-                    <DetailHeader backTo={"/tickets"} />
+                    <DetailHeader backTo={"/dashboard/tickets"} employeeName={ticket?.assignedTo} />
                     <div className="flex-1 flex items-center justify-center">
                         <p className="text-gray-500">Loading ticket...</p>
                     </div>
@@ -144,7 +198,7 @@ function DetailedTickets() {
             <div className="flex h-screen">
                 <Sidebar />
                 <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6">
-                    <DetailHeader backTo={"/tickets"} />
+                    <DetailHeader backTo={"/dashboard/tickets"} employeeName={ticket?.assignedTo} />
                     <div className="flex-1 flex items-center justify-center">
                         <p className="text-red-500">{error || 'Ticket not found'}</p>
                     </div>
@@ -157,7 +211,7 @@ function DetailedTickets() {
         <div className="flex h-screen">
             <Sidebar />
             <main className="flex-1 flex flex-col min-h-screen overflow-hidden p-6 bg-gray-50">
-                <DetailHeader backTo={"/tickets"} />
+                <DetailHeader backTo={"/dashboard/tickets"} employeeName={ticket.assignedTo} />
                 <div className="flex-1 overflow-y-auto p-6 space-y-8">
                     <div className="bg-white p-6 rounded-lg shadow">
                         <div className="flex items-center justify-between mb-4">
@@ -172,9 +226,9 @@ function DetailedTickets() {
                         <p><span className="font-semibold">Category:</span> {ticket.issue_type || 'N/A'}</p>
                         <p><span className="font-semibold">Location:</span> {ticket.location}</p>
                         <p><span className="font-semibold">Created At:</span> {ticket.createdAt}</p>
-                        {ticket.resolved_at && (
-                            <p><span className="font-semibold">Resolved At:</span> {new Date(ticket.resolved_at).toISOString().split('T')[0]}</p>
-                        )}
+                        {ticket.resolved_at ? (
+                            <p><span className="font-semibold">Resolved At:</span> {ticket.resolved_at}</p>
+                        ) : null}
                         <p><span className="font-semibold">Description:</span> {ticket.description}</p>
 
                     </div>
@@ -210,6 +264,8 @@ function DetailedTickets() {
                                 setNewMessage={setNewMessage}
                                 handleSendMessage={handleSendMessage}
                                 isPrivate={isPrivate}
+                                employees={employees}
+                                onMentionsChange={setActiveMentions}
                             />
                         </div>
                     </div>

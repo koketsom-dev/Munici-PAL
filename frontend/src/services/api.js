@@ -126,15 +126,18 @@ export const forumAPI = {
     return handleResponse(response);
   },
 
-  addMessage: async (subject, message, roomId = 1, ticketId = null, isPrivate = null) => {
+  addMessage: async (subject, message, roomId = 1, ticketId = null, isPrivate = null, mentions = []) => {
     const body = {
       message_subject: subject,
       message_description: message,
       room_id: roomId,
       is_private: isPrivate
     };
-    if (ticketId) {
+    if (ticketId !== null && ticketId !== undefined) {
       body.ticket_id = ticketId;
+    }
+    if (Array.isArray(mentions) && mentions.length > 0) {
+      body.mentions = mentions;
     }
     const response = await authenticatedFetch(`${API_BASE_URL}/forum/add-message.php`, {
       method: 'POST',

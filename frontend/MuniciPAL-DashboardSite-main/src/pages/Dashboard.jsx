@@ -52,12 +52,43 @@ export default function Dashboard() {
   const [assignmentPopup, setAssignmentPopup] = useState({ message: '', type: '' });
 
   const handleClearNotifications = useCallback(async () => {
-    const ids = notifications
-      .map((item) => item.id)
-      .filter((id) => id !== null && id !== undefined);
-    if (ids.length > 0) {
+    if (notifications.length === 0) {
+      setNotifications([]);
+      return;
+    }
+
+    const payload = notifications
+      .map((item) => {
+        if (item.type === 'mention') {
+          const mentionId = item.rawNotificationId ?? parseInt(String(item.id).replace(/^mention-/, ''), 10);
+          if (!Number.isInteger(mentionId) || mentionId <= 0) {
+            return null;
+          }
+          return { type: 'mention', id: mentionId };
+        }
+        if (item.type === 'assignment') {
+          const ticketId = item.ticketId ?? parseInt(String(item.id).replace(/^assignment-/, ''), 10);
+          if (!Number.isInteger(ticketId) || ticketId <= 0) {
+            return null;
+          }
+          return { type: 'assignment', id: ticketId };
+        }
+        if (item.type === 'community') {
+          if (item.id === null || item.id === undefined) {
+            return null;
+          }
+          return item.id;
+        }
+        if (item.id === null || item.id === undefined) {
+          return null;
+        }
+        return item.id;
+      })
+      .filter((entry) => entry !== null);
+
+    if (payload.length > 0) {
       try {
-        await notificationAPI.markRead(ids);
+        await notificationAPI.markRead(payload);
       } catch (err) {
         console.error('Failed to mark notifications as read:', err);
       }
@@ -69,11 +100,31 @@ export default function Dashboard() {
     try {
       const response = await notificationAPI.list();
       if (response.success && Array.isArray(response.data)) {
-        const formatted = response.data.map((item) => ({
-          id: item.id ?? item.notification_id ?? `${item.ticket_id ?? "notification"}-${item.created_at ?? item.time ?? Date.now()}`,
-          message: item.message ?? item.notification ?? item.description ?? `Ticket ${item.ticket_id ?? ""} assigned to you`.trim(),
-          time: item.created_at ? new Date(item.created_at).toLocaleString() : item.time ?? ""
-        }));
+        const formatted = response.data.map((item) => {
+          const type = item.type || 'assignment';
+          const ticketId = item.ticket_id ?? null;
+          const rawNotificationId = item.notification_id ?? null;
+          const createdAtString = item.created_at ?? item.time ?? null;
+          const createdAt = createdAtString ? new Date(createdAtString) : null;
+          const time = createdAt ? createdAt.toLocaleString() : '';
+          const fallbackId = `${ticketId ?? 'notification'}-${createdAt ? createdAt.getTime() : Date.now()}`;
+          const id = item.id ?? (type === 'mention' && rawNotificationId ? `mention-${rawNotificationId}`
+            : type === 'assignment' && ticketId ? `assignment-${ticketId}`
+            : fallbackId);
+          const message = item.message ?? item.notification ?? item.description ?? (type === 'assignment'
+            ? `Ticket ${ticketId ?? ''} assigned to you`.trim()
+            : 'Notification');
+
+          return {
+            id,
+            type,
+            ticketId,
+            message,
+            time,
+            rawNotificationId,
+            ticketSubject: item.ticket_subject ?? null
+          };
+        });
         setNotifications(formatted);
       }
     } catch (err) {
@@ -137,6 +188,7 @@ export default function Dashboard() {
 
         const formattedTickets = response.data.map(ticket => {
           const assignedToId = ticket.assigned_to_id ?? ticket.emp_id ?? null;
+          const mentionAccess = Boolean(ticket.has_mention_access);
 
           return {
             id: ticket.id || ticket.ticket_id,
@@ -149,13 +201,14 @@ export default function Dashboard() {
             description: ticket.description || '',
             assignedTo: ticket.assignedTo || ticket.assigned_to || 'Unassigned',
             assignedToId: assignedToId !== null ? Number(assignedToId) : null,
+            hasMentionAccess: mentionAccess,
             hasNewUpdate: false,
             hasNewMessage: false,
           };
         });
 
         const filteredTickets = employeeId !== null
-          ? formattedTickets.filter(ticket => ticket.assignedToId === employeeId)
+          ? formattedTickets.filter(ticket => ticket.assignedToId === employeeId || ticket.hasMentionAccess)
           : formattedTickets;
 
         setTickets(filteredTickets);

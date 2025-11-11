@@ -10,7 +10,7 @@ error_log("Request Method: " . $_SERVER['REQUEST_METHOD']);
 error_log("Content Type: " . ($_SERVER['CONTENT_TYPE'] ?? 'Not set'));
 
 require_once __DIR__ . '/../bootstrap.php';
-require_once __DIR__ . '/../utils/Response.php';
+require_once __DIR__ . '/../utils/response.php';
 
 // Handle preflight OPTIONS request
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {

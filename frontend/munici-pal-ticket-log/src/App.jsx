@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './App.css';
 import DashboardPage from './DashboardPage';
@@ -13,12 +13,48 @@ import SuggestionPage from './Suggestion';
 import HelpPage from './Help';
 import AboutPage from './AboutPage';
 import logo from './municiPAL.svg';
-import { forumAPI, notificationAPI, authAPI, userAPI } from '../../src/services/api';
+import { forumAPI, notificationAPI, authAPI, userAPI, ticketAPI } from '../../src/services/api';
+
+const COMMUNITY_TIME_ZONE = 'Africa/Johannesburg';
+const communityMessageFormatter = new Intl.DateTimeFormat('en-GB', {
+  timeZone: COMMUNITY_TIME_ZONE,
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit'
+});
+const communityEnsureDate = (value) => {
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value;
+  }
+  const parsed = value ? new Date(value) : new Date();
+  if (Number.isNaN(parsed.getTime())) {
+    return new Date();
+  }
+  return parsed;
+};
+const normalizeCommunityStatus = (status) => {
+  if (!status) {
+    return 'Pending';
+  }
+  const formatted = String(status).trim().toLowerCase().replace(/[_-]+/g, ' ');
+  if (formatted.includes('progress')) {
+    return 'In Progress';
+  }
+  if (formatted.includes('resolve') || formatted.includes('close') || formatted.includes('complete')) {
+    return 'Resolved';
+  }
+  return 'Pending';
+};
 
 function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState('dashboard');
   const [notifications, setNotifications] = useState([]);
+  const [ticketStatusNotifications, setTicketStatusNotifications] = useState([]);
+  const ticketStatusCacheRef = useRef(new Map());
+  const ticketStatusInitializedRef = useRef(false);
   const [chatMessages, setChatMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
@@ -36,13 +72,21 @@ function App() {
       try {
         const response = await notificationAPI.list();
         if (response.success && Array.isArray(response.data) && active) {
-          const formatted = response.data.map((notification) => ({
-            id: notification.id,
-            text: notification.message,
-            ticketId: notification.ticket_id,
-            subject: notification.ticket_subject,
-            createdAt: notification.created_at
-          }));
+          const formatted = response.data.map((notification) => {
+            const rawId = notification.notification_id ?? notification.id ?? notification.ticket_id ?? null;
+            const markPayload = notification.notification_id ?? notification.id ?? notification.ticket_id ?? null;
+            const createdAtSource = notification.created_at ?? notification.time ?? null;
+            const ticketId = notification.ticket_id ?? null;
+            const text = notification.message || notification.notification || notification.description || (ticketId ? `Ticket #${ticketId} update` : 'Ticket update');
+            return {
+              id: rawId !== null ? `server-${rawId}` : `server-${ticketId ?? Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+              text,
+              ticketId,
+              time: createdAtSource ? communityMessageFormatter.format(communityEnsureDate(createdAtSource)) : '',
+              source: 'server',
+              markPayload
+            };
+          });
           setNotifications(formatted);
         }
       } catch (error) {
@@ -61,6 +105,74 @@ function App() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
+    const loadTicketStatusUpdates = async () => {
+      if (!authAPI.isLoggedIn()) {
+        return;
+      }
+      try {
+        const response = await ticketAPI.list({});
+        if (!active) {
+          return;
+        }
+        if (response.success && Array.isArray(response.data)) {
+          const updates = [];
+          const seenIds = new Set();
+          response.data.forEach((ticket) => {
+            const rawTicketId = ticket.id || ticket.ticket_id;
+            if (!rawTicketId) {
+              return;
+            }
+            const ticketKey = String(rawTicketId);
+            const statusValue = normalizeCommunityStatus(ticket.status || ticket.ticket_status || ticket.current_status);
+            const previousStatus = ticketStatusCacheRef.current.get(ticketKey);
+            if (ticketStatusInitializedRef.current && previousStatus && previousStatus !== statusValue) {
+              const updatedAtSource = ticket.updated_at || ticket.date_updated || ticket.modified_at || ticket.completedAt || ticket.date_completed || ticket.resolved_at || ticket.createdAt || ticket.date_created || ticket.created_at || new Date();
+              updates.push({
+                id: `status-${ticketKey}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                text: `Ticket #${rawTicketId} status updated to ${statusValue}`,
+                ticketId: rawTicketId,
+                time: communityMessageFormatter.format(communityEnsureDate(updatedAtSource)),
+                source: 'status',
+                status: statusValue
+              });
+            }
+            ticketStatusCacheRef.current.set(ticketKey, statusValue);
+            seenIds.add(ticketKey);
+          });
+          const existingKeys = Array.from(ticketStatusCacheRef.current.keys());
+          existingKeys.forEach((key) => {
+            if (!seenIds.has(key)) {
+              ticketStatusCacheRef.current.delete(key);
+            }
+          });
+          if (!ticketStatusInitializedRef.current) {
+            ticketStatusInitializedRef.current = true;
+          } else if (updates.length > 0) {
+            setTicketStatusNotifications((prev) => {
+              const combined = [...updates, ...prev];
+              return combined.slice(0, 50);
+            });
+          }
+        }
+      } catch (error) {
+        if (active) {
+          console.error('Failed to fetch ticket updates:', error);
+        }
+      }
+    };
+
+    loadTicketStatusUpdates();
+    const interval = setInterval(loadTicketStatusUpdates, 15000);
+
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
     if (currentPage === 'chat-forum') {
       fetchMessages();
     }
@@ -69,7 +181,7 @@ function App() {
   const fetchMessages = async () => {
     try {
       setChatLoading(true);
-      const response = await forumAPI.getMessages(50, 0);
+      const response = await forumAPI.getMessages(50, 0, 1, null, false);
       if (response.success && response.data.messages) {
         const currentUser = userAPI.getCurrentUser();
         const formattedMessages = response.data.messages.map(msg => ({
@@ -77,13 +189,7 @@ function App() {
           user: msg.user_name || 'User',
           userId: msg.user_id,
           message: msg.message_description,
-          time: new Date(msg.message_sent_timestamp).toLocaleString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          }),
+          time: communityMessageFormatter.format(communityEnsureDate(msg.message_sent_timestamp)),
           isOwn: currentUser && msg.user_id === currentUser.id
         }));
         setChatMessages(formattedMessages);
@@ -99,12 +205,25 @@ function App() {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const markNotificationAsRead = async (id) => {
-    try {
-      await notificationAPI.markRead([id]);
-      setNotifications((prev) => prev.filter((notification) => notification.id !== id));
-    } catch (error) {
-      console.error('Failed to mark notification as read:', error);
+  const handleNotificationClick = async (notification) => {
+    if (notification.source === 'status') {
+      setTicketStatusNotifications((prev) => prev.filter((item) => item.id !== notification.id));
+      return;
+    }
+    if (notification.source === 'server') {
+      const markId = notification.markPayload;
+      if (markId !== null && markId !== undefined) {
+        const payload = (Array.isArray(markId) ? markId : [markId]).map((value) => {
+          const numeric = Number(value);
+          return Number.isNaN(numeric) ? value : numeric;
+        });
+        try {
+          await notificationAPI.markRead(payload);
+        } catch (error) {
+          console.error('Failed to mark notification as read:', error);
+        }
+      }
+      setNotifications((prev) => prev.filter((item) => item.id !== notification.id));
     }
   };
 
@@ -115,7 +234,7 @@ function App() {
     setNewMessage('');
 
     try {
-      const response = await forumAPI.addMessage('General', messageText);
+      const response = await forumAPI.addMessage('General', messageText, 1, null, false);
       if (response.success) {
         const msg = response.data;
         const currentUser = userAPI.getCurrentUser();
@@ -124,13 +243,7 @@ function App() {
           user: msg.user_name || 'You',
           userId: msg.user_id,
           message: msg.message_description,
-          time: new Date(msg.message_sent_timestamp).toLocaleString('en-GB', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          }),
+          time: communityMessageFormatter.format(communityEnsureDate(msg.message_sent_timestamp)),
           isOwn: currentUser && msg.user_id === currentUser.id
         };
         setChatMessages([...chatMessages, newChatMessage]);
@@ -250,6 +363,8 @@ function App() {
     }
   ];
 
+  const combinedNotifications = [...ticketStatusNotifications, ...notifications];
+
   // Render different pages based on currentPage state
   const renderPage = () => {
     switch(currentPage) {
@@ -304,9 +419,9 @@ function App() {
           <div className="notifications">
             <button className="notification-btn">
               <span className="notification-icon">🔔</span>
-              {notifications.length > 0 && (
+              {combinedNotifications.length > 0 && (
                 <span className="notification-badge">
-                  {notifications.length}
+                  {combinedNotifications.length}
                 </span>
               )}
             </button>
@@ -314,16 +429,19 @@ function App() {
             {/* Notification dropdown */}
             <div className="notification-dropdown">
               <h3>Notifications</h3>
-              {notifications.length === 0 ? (
+              {combinedNotifications.length === 0 ? (
                 <p>No new notifications</p>
               ) : (
-                notifications.map(notification => (
+                combinedNotifications.map((notification) => (
                   <div 
                     key={notification.id} 
                     className="notification-item unread"
-                    onClick={() => markNotificationAsRead(notification.id)}
+                    onClick={() => handleNotificationClick(notification)}
                   >
-                    {notification.text}
+                    <div>{notification.text}</div>
+                    {notification.time ? (
+                      <div className="text-xs text-gray-500 mt-1">{notification.time}</div>
+                    ) : null}
                   </div>
                 ))
               )}
